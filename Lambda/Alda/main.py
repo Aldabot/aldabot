@@ -18,7 +18,6 @@ logger.setLevel(logging.INFO)
 
 logger.info('Starting')
 
-
 try:
     # Connect to the database
     connection = pymysql.connect(
