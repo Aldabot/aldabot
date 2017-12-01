@@ -151,7 +151,7 @@ class Person:
 
                     # update FACEBOOK profil
                     r = requests.get('https://graph.facebook.com/v2.10/'
-                                     + self.facebook_id + '?&access_token='+config['DEFAULT']['pageAccessToken'])
+                                     +self.facebook_id+'?&access_token='+config['DEFAULT']['facebookPageAccessToken'])
                     graphResponse = r.json()
                     first_name = graphResponse['first_name']
                     last_name = graphResponse['last_name']
@@ -159,10 +159,10 @@ class Person:
                     query = """
                         UPDATE `saltedge_customer`
                         SET `updated_at` = %s, `first_name` = %s, `last_name` = %s, `gender` = %s
-                        WHERE `facebook_id` = %s
+                        WHERE `id` = %s
                     """
                     cursor.execute(query, (datetime.datetime.now().isoformat(), first_name, last_name, gender,
-                                           self.facebook_id))
+                                           self.customer['id']))
                     self.connection.commit()
                     logger.info("RDS: updated Facebook profile")
 
