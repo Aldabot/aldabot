@@ -119,6 +119,7 @@ class Person:
                 self.connection.commit()
                 logger.info("RDS: saved SaltEdge Customer Id")
             else:
+                SaltEdge.log(response)
                 return {
                     "speech": "Ya tienes una cuenta tuya."
                 }

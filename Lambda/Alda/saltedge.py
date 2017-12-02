@@ -2,6 +2,10 @@ import OpenSSL.crypto as crypto
 import requests
 import base64
 import time
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 class PEMKeyLoader:
@@ -105,3 +109,8 @@ class SaltEdge:
             'Service-secret': self.service_secret
         }
         return requests.put(some_url, data=payload, headers=headers)
+
+    @staticmethod
+    def log(response):
+        if response.status_code != 200:
+            logger.error("SaltEdge (%s): %s" % (response.error_class, response.error_message))

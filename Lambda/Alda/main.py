@@ -41,6 +41,7 @@ def handler(event, context):
     request = json.loads(event['body'])
 
     # get DIALOGFLOW parameters
+    fulfillment_speech = request['result']['fulfillment']['speech']
     sender_id = request['originalRequest']['data']['sender']['id']
     facebook_id = sender_id
     person = Person(connection, facebook_id)
@@ -68,6 +69,8 @@ def handler(event, context):
         fulfillment = queryBudget(facebook_id)
     elif intentName == "alda.query.expenses":
         fulfillment = person.getExpenses()
+    elif fulfillment_speech:
+        fulfillment = {"speech": fulfillment_speech}
     else:
         fulfillment = prepareNotUnderstood()
 
