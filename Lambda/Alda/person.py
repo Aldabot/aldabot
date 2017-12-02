@@ -48,16 +48,19 @@ class Person:
                 cursor.execute(query, (self.facebook_id))
                 self.id = cursor.fetchone()['id']
 
+            # get first_name
+            self.first_name = self.getFacebookProfil()['first_name']
+
             # get customer if exists
             # else: initialize SaltEdge
             query = """
-                SELECT c.`id`, c.`first_name`
+                SELECT c.`id`
                 FROM saltedge_customer c, person p
                 WHERE c.`id` = p.`customer_id` AND p.`id` = %s
             """
             cursor.execute(query, (self.id))
             if cursor.rowcount != 0:
-                self.customer.update(cursor.fetchone())
+                self.customer['id'] = cursor.fetchone()['id']
 
                 # get logins of customer
                 query = """
@@ -96,8 +99,17 @@ class Person:
         :return: Dialogflow speech with button to create another saltedge login
                  if user is not registered
         """
-        # facebook_profil = self.getFacebookProfil()
+        facebook_profil = self.queryFacebookProfil()
         with self.connection.cursor() as cursor:
+            # save facebook profil
+            query = """
+                INSERT INTO facebook_profil
+                SET `id` = %s, `first_name` = %s, `last_name` = %s, `gender` = %s
+            """
+            cursor.execute(query, (self.facebook_id, facebook_profil['first_name'], facebook_profil['last_name'],
+                                   facebook_profil['gender']))
+            self.connection.commit()
+
             url = 'https://www.saltedge.com/api/v3/customers/'
             payload = json.dumps({"data": {"identifier": self.id}})
             response = self.saltedge.post(url, payload)
@@ -151,19 +163,14 @@ class Person:
                     # logSaltedgeError(response.json())
 
                     # update FACEBOOK profil
-                    r = requests.get('https://graph.facebook.com/v2.10/'
-                                     +self.facebook_id+'?&access_token='+config['DEFAULT']['facebookPageAccessToken'])
-                    graphResponse = r.json()
-                    first_name = graphResponse['first_name']
-                    last_name = graphResponse['last_name']
-                    gender = graphResponse['gender']
+                    facebook_profil = self.queryFacebookProfil()
                     query = """
-                        UPDATE `saltedge_customer`
-                        SET `updated_at` = %s, `first_name` = %s, `last_name` = %s, `gender` = %s
+                        UPDATE facebook_profil
+                        SET `first_name` = %s, `last_name` = %s, `gender` = %s
                         WHERE `id` = %s
                     """
-                    cursor.execute(query, (datetime.datetime.now().isoformat(), first_name, last_name, gender,
-                                           self.customer['id']))
+                    cursor.execute(query, (facebook_profil['first_name'], facebook_profil['last_name'],
+                                           facebook_profil['gender'], self.facebook_id))
                     self.connection.commit()
                     logger.info("RDS: updated Facebook profile")
 
@@ -173,7 +180,7 @@ class Person:
         return self.getFacebookButton(speech, "Añadir Banco", saltedge_connect_url)
 
     def getBalance(self):
-        speech = "Hola %s 😊, \n\r\n\r" % (self.customer['first_name'])
+        speech = "Hola %s 😊, \n\r\n\r" % (self.first_name)
         totalBalance = 0
         for login in self.customer['logins']:
             for account in login['accounts']:
@@ -269,6 +276,21 @@ class Person:
 
     def getFacebookProfil(self):
         """
+        gets facebook profil from OUR database
+        :return: mysql facebook profil -> {'first_name', 'last_name', 'gender'}
+        """
+        with self.connection.cursor() as cursor:
+            query = """
+                SELECT `first_name`, `last_name`, `gender`
+                FROM facebook_profil
+                WHERE `id` = %s
+            """
+            cursor.execute(query, (self.facebook_id))
+            return cursor.fetchone()
+
+    def queryFacebookProfil(self):
+        """
+        queries Facebook profil from the GRAPH API
         :return: Facebook profil -> {'first_name', 'last_name', 'gender'}
         """
         r = requests.get('https://graph.facebook.com/v2.10/'
