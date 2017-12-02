@@ -50,11 +50,11 @@ def handler(event, context):
 
     # if not first time interaction try to refresh data
     if intentName != "alda.initialize":
-        logger.info("is registered? %s" % person.isRegistered)
         if person.isRegistered:
             person.refresh()
         else:
             person.initialize()
+
     # LOGIC
     fulfillment = {}
     if intentName == "alda.initialize":
@@ -158,7 +158,3 @@ def prepareNotUnderstood():
 def last_day_of_month(any_day):
     next_month = any_day.replace(day=28) + datetime.timedelta(days=4)
     return next_month - datetime.timedelta(days=next_month.day)
-
-
-def logSaltedgeError(response):
-    logger.info(response)

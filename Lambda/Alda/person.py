@@ -27,19 +27,29 @@ class Person:
         self.customer = {}
         self.facebook_id = facebook_id
 
-        with self.connection.cursor() as cursor:
-            # if not registered create person
-            # else get person_id and customer_id
-            if not self.isRegistered():
+        # if not registered create person
+        # else get person_id and customer_id
+        if not self.isRegistered():
+            with self.connection.cursor() as cursor:
                 query = """
                     INSERT INTO `person` (`facebook_id`)
                     VALUES (%s)
                 """
                 cursor.execute(query, (self.facebook_id))
-                self.connection.commit()
                 self.id = cursor.rowcount
-                logger.info("RDS: saved new person with id: %s" % (self.id))
-            else:
+
+                # save Facebook profil
+                facebook_profil = self.queryFacebookProfil()
+                query = """
+                    INSERT INTO facebook_profil
+                    SET `id` = %s, `first_name` = %s, `last_name` = %s, `gender` = %s
+                """
+                cursor.execute(query, (self.facebook_id, facebook_profil['first_name'], facebook_profil['last_name'],
+                                       facebook_profil['gender']))
+            self.connection.commit()
+            logger.info("RDS: saved new person with id: %s" % (self.id))
+        else:
+            with self.connection.cursor() as cursor:
                 query = """
                     SELECT `id`
                     FROM person
@@ -51,6 +61,7 @@ class Person:
             # get first_name
             self.first_name = self.getFacebookProfil()['first_name']
 
+        with self.connection.cursor() as cursor:
             # get customer if exists
             # else: initialize SaltEdge
             query = """
@@ -93,48 +104,38 @@ class Person:
 
                     self.customer['logins'].append(loginDict)
                     logger.info(json.dumps(self.customer, sort_keys=True, indent=4))
+            else:
+                self.initialize()
 
     def initialize(self):
         """
         :return: Dialogflow speech with button to create another saltedge login
                  if user is not registered
         """
-        facebook_profil = self.queryFacebookProfil()
-        with self.connection.cursor() as cursor:
-            # save facebook profil
-            query = """
-                INSERT INTO facebook_profil
-                SET `id` = %s, `first_name` = %s, `last_name` = %s, `gender` = %s
-            """
-            cursor.execute(query, (self.facebook_id, facebook_profil['first_name'], facebook_profil['last_name'],
-                                   facebook_profil['gender']))
-            self.connection.commit()
-
-            url = 'https://www.saltedge.com/api/v3/customers/'
-            payload = json.dumps({"data": {"identifier": self.id}})
-            response = self.saltedge.post(url, payload)
-            # if is not saltedge_customer (response.status_code != 409)
-            if response.status_code == 200:
-                self.customer['id'] = response.json()['data']['id']
+        logger.info("Person.initialize()")
+        url = 'https://www.saltedge.com/api/v3/customers/'
+        payload = json.dumps({"data": {"identifier": self.id}})
+        response = self.saltedge.post(url, payload)
+        # if is not saltedge_customer (response.status_code != 409)
+        if response.status_code == 200:
+            self.customer['id'] = response.json()['data']['id']
+            with self.connection.cursor() as cursor:
                 query = """
                     UPDATE person
                     SET `customer_id` = %s
                     WHERE `id` = %s
                 """
                 cursor.execute(query, (self.customer['id'], self.id))
-                self.connection.commit()
                 query = """
                     INSERT INTO saltedge_customer
                     SET `id` = %s
                 """
                 cursor.execute(query, (self.customer['id']))
-                self.connection.commit()
-                logger.info("RDS: saved SaltEdge Customer Id")
-            else:
-                SaltEdge.log(response)
-                return {
-                    "speech": "Ya tienes una cuenta tuya."
-                }
+            self.connection.commit()
+            logger.info("RDS: saved SaltEdge Customer Id")
+        else:
+            SaltEdge.log(response)
+            return self.addBank()
 
         saltedge_connect_url = self.getSaltEdgeLoginUrl()
         speech = ("Lo primero que tendrás que hacer es iniciar sesión en tu cuenta bancaria para poderacceder a tu"
@@ -143,43 +144,52 @@ class Person:
                                           "http://aldabot.es")
 
     def refresh(self):
-        # if customer.updated not refreshed since more than one hour update SaltEdge data
-        with self.connection.cursor() as cursor:
-            query = """
-                SELECT c.`id` AS customer_id, c.`updated_at`, l.`id` AS login_id
-                FROM saltedge_customer c
-                LEFT JOIN saltedge_login l ON c.`id` = l.`customer_id`
-                WHERE c.`id` = %s
-            """
-            cursor.execute(query, (self.customer['id']))
-            fetched = cursor.fetchall()
+        logger.info('Person.refresh()')
+        # update FACEBOOK profil
+        facebook_profil = self.queryFacebookProfil()
+        if facebook_profil:
+            with self.connection.cursor() as cursor:
+                query = """
+                    UPDATE facebook_profil
+                    SET `first_name` = %s, `last_name` = %s, `gender` = %s
+                    WHERE `id` = %s
+                """
+                cursor.execute(query, (facebook_profil['first_name'], facebook_profil['last_name'],
+                                       facebook_profil['gender'], self.facebook_id))
+            self.connection.commit()
+            logger.info("RDS: updated Facebook profile")
 
-            if fetched[0]['updated_at'] < datetime.datetime.now() - datetime.timedelta(hours=1):
-                logger.info("is refreshing")
-                for login in fetched:
-                    url = 'https://www.saltedge.com/api/v3/logins/'+str(login['login_id'])+'/refresh'
-                    payload = json.dumps({"data": {"fetch_type": "recent"}})
-                    response = self.saltedge.put(url, payload)
-                    # logSaltedgeError(response.json())
-
-                    # update FACEBOOK profil
-                    facebook_profil = self.queryFacebookProfil()
-                    query = """
-                        UPDATE facebook_profil
-                        SET `first_name` = %s, `last_name` = %s, `gender` = %s
-                        WHERE `id` = %s
-                    """
-                    cursor.execute(query, (facebook_profil['first_name'], facebook_profil['last_name'],
-                                           facebook_profil['gender'], self.facebook_id))
-                    self.connection.commit()
-                    logger.info("RDS: updated Facebook profile")
+        # if customer exists and customer.updated not refreshed since more than one hour update SaltEdge data
+        if self.isSaltedgeCustomer():
+            with self.connection.cursor() as cursor:
+                query = """
+                    SELECT c.`id` AS customer_id, c.`updated_at`, l.`id` AS login_id
+                    FROM saltedge_customer c
+                    LEFT JOIN saltedge_login l ON c.`id` = l.`customer_id`
+                    LEFT JOIN person p ON c.`id` = p.`customer_id`
+                    WHERE p.`id` = %s
+                """
+                cursor.execute(query, (self.id))
+                if cursor.rowcount > 0:
+                    fetched = cursor.fetchall()
+                    if fetched[0]['updated_at'] < datetime.datetime.now() - datetime.timedelta(hours=1):
+                        logger.info("is refreshing")
+                        for login in fetched:
+                            url = 'https://www.saltedge.com/api/v3/logins/'+str(login['login_id'])+'/refresh'
+                            payload = json.dumps({"data": {"fetch_type": "recent"}})
+                            response = self.saltedge.put(url, payload)
+                            # logSaltedgeError(response.json())
+                            logger.info("refreshed login ids")
 
     def addBank(self):
+        logger.info("Adding Bank")
         saltedge_connect_url = self.getSaltEdgeLoginUrl()
+        logger.info("got Login URL")
         speech = "Tendrás que iniciar sesión en tu cuenta bancaria para poder acceder a tu información financiera."
         return self.getFacebookButton(speech, "Añadir Banco", saltedge_connect_url)
 
     def getBalance(self):
+        logger.info("Person.getBalance()")
         speech = "Hola %s 😊, \n\r\n\r" % (self.first_name)
         totalBalance = 0
         for login in self.customer['logins']:
@@ -294,8 +304,11 @@ class Person:
         :return: Facebook profil -> {'first_name', 'last_name', 'gender'}
         """
         r = requests.get('https://graph.facebook.com/v2.10/'
-                         + self.facebook_id + '?&access_token='+config['DEFAULT']['facebookPageAccessToken'])
-        return r.json()
+                         + self.facebook_id + '?access_token='+config['DEFAULT']['facebookPageAccessToken'], timeout=3)
+        if r.status_code == 200:
+            return r.json()
+        else:
+            logger.error(r.json())
 
     def isRegistered(self):
         with self.connection.cursor() as cursor:
@@ -306,6 +319,18 @@ class Person:
 
             logger.info("is registered row count %s" % (cursor.rowcount))
             if cursor.rowcount != 0:
+                return True
+            else:
+                return False
+
+    def isSaltedgeCustomer(self):
+        with self.connection.cursor() as cursor:
+            query = """
+                SELECT `customer_id` FROM person
+                WHERE `id` = %s
+            """
+            cursor.execute(query, (self.id))
+            if cursor.rowcount != 0 and cursor.fetchone()['customer_id']:
                 return True
             else:
                 return False

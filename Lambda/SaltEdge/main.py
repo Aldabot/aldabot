@@ -1,16 +1,12 @@
 import pymysql.cursors
 import logging
 import json
-from saltedge import SaltEdge
 from login import Login
 import sys
 import configparser
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-
-# Facebook Page Token
-# EAAYxS7zz3koBAOpFk1YePLYkPc81cMDMAwt8lKQnMCqH3TXZAMtuFL7VrY9Nfx6QKqMHbzsqaqu129D0cFj7irZCT40UZC61jrR3afRVgQkgnQmPZAbFpti48YXZCit8SqQOnZC7iGjDukZACZAXYRog4A8crUZA3zfteJMFi4GqD2zRz6S5R1P2Q
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -55,14 +51,6 @@ def handler(event, context):
     login.saveAccounts(mysqlAccountList)
     login.saveTransactions(mysqlTransactionList)
 
-
-
-
-
-
-
-    # app = SaltEdge('QTPsSIxhOxBxIRf3IKzWew', 'b6aeHuRHbvQouDqS_zB-R0cdXzKdvbi3kLnkMYE6EcU', 'private.pem', 'public.pem')
-    #
     # # query ACCOUNTS
     # url = 'https://www.saltedge.com/api/v3/accounts?customer_id='+str(customer_id)
     # response = app.get(url)

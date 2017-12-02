@@ -54,8 +54,8 @@ class Login:
                 VALUES (%s)
             """
             cursor.execute(query, (self.customer_id))
-            self.connection.commit()
-            logger.info("RDS: saved Login")
+        self.connection.commit()
+        logger.info("RDS: saved Login")
 
     def saveLogin(self):
         with self.connection.cursor() as cursor:
@@ -66,8 +66,8 @@ class Login:
                 id = VALUES(id), customer_id = VALUES(customer_id)
             """
             cursor.execute(query, (self.login_id, self.customer_id))
-            self.connection.commit()
-            logger.info("RDS: saved Login")
+        self.connection.commit()
+        logger.info("RDS: saved Login")
 
     def saveAccounts(self, mysqlAccountList):
         with self.connection.cursor() as cursor:
@@ -79,8 +79,8 @@ class Login:
                 currency_code = VALUES(currency_code), balance = VALUES(balance), nature = VALUES(nature)
             """
             cursor.executemany(query, mysqlAccountList)
-            self.connection.commit()
-            logger.info("RDS: saved Account/s")
+        self.connection.commit()
+        logger.info("RDS: saved Account/s")
 
     def saveTransactions(self, mysqlTransactionList):
         with self.connection.cursor() as cursor:
@@ -94,5 +94,5 @@ class Login:
                 made_on = VALUES(made_on)
             """
             cursor.executemany(query, mysqlTransactionList)
-            self.connection.commit()
-            logger.info("RDS: saved Transactions")
+        self.connection.commit()
+        logger.info("RDS: saved Transactions")

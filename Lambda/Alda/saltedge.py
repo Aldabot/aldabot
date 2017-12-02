@@ -112,5 +112,7 @@ class SaltEdge:
 
     @staticmethod
     def log(response):
+        responseJSON = response.json()
+        logger.error(responseJSON)
         if response.status_code != 200:
-            logger.error("SaltEdge (%s): %s" % (response.error_class, response.error_message))
+            logger.error("SaltEdge (%s): %s" % (responseJSON['error_class'], responseJSON['error_message']))
