@@ -11,8 +11,6 @@ import configparser
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-response = {'statusCode': 200, 'body': ''}
-
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -63,7 +61,7 @@ def handler(event, context):
     elif intentName == "alda.add.bank":
         fulfillment = person.addBank()
     elif intentName == "alda.query.balance":
-        fulfillment = person.getBalance()
+        person.queryBalance()
     elif intentName == "alda.define.budget":
         fulfillment = defineBudget(facebook_id, request)
     elif intentName == "alda.query.budget":
@@ -75,12 +73,9 @@ def handler(event, context):
     else:
         fulfillment = prepareNotUnderstood()
 
-    response['body'] = json.dumps(fulfillment)
-    print(response['body'])
-
     with connection.cursor() as cursor:
         sql = "INSERT INTO `conversation` (`message`, `response`, `sender_id`) VALUES (%s, %s, %s)"
-        cursor.execute(sql, (message, fulfillment['fulfillmentText'], sender_id))
+        cursor.execute(sql, (message, person.get_fulfillmentText(), sender_id))
         connection.commit()
 
     return person.get_response()

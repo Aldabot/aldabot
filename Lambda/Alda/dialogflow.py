@@ -11,8 +11,12 @@ class Dialogflow:
     __webhook_response = {'fulfillmentText': "No te entiendo?"}
 
     @classmethod
-    def set_webhook_response(self, fulfillmentText):
+    def set_fulfillmentText(self, fulfillmentText):
         self.__webhook_response['fulfillmentText'] = fulfillmentText
+
+    @classmethod
+    def get_fulfillmentText(self):
+        return self.__webhook_response['fulfillmentText']
 
     @classmethod
     def get_response(self):

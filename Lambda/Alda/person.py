@@ -189,19 +189,18 @@ class Person(Dialogflow):
         speech = "Tendrás que iniciar sesión en tu cuenta bancaria para poder acceder a tu información financiera."
         return self.getFacebookButton(speech, "Añadir Banco", saltedge_connect_url)
 
-    def getBalance(self):
+    def queryBalance(self):
         logger.info("Person.getBalance()")
-        speech = "Hola %s 😊, \n\r\n\r" % (self.first_name)
+        fulfillmentText = "Hola %s 😊, \n\r\n\r" % (self.first_name)
         totalBalance = 0
         for login in self.customer['logins']:
             for account in login['accounts']:
-                speech += "%.10s (%.4s): %.0f € \n" % (account['nature'], account['name'][-4:], account['balance'])
+                fulfillmentText += "%.10s (%.4s): %.0f € \n" % (account['nature'], account['name'][-4:],
+                                                                account['balance'])
                 totalBalance += account['balance']
 
-        speech += "\n\rTotal: %.0f € 📈" % (totalBalance)
-        return {
-            'fulfillmentText': speech
-        }
+        fulfillmentText += "\n\rTotal: %.0f € 📈" % (totalBalance)
+        self.set_fulfillmentText(fulfillmentText)
 
     def getExpenses(self):
         with self.connection.cursor() as cursor:
