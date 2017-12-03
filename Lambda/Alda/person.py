@@ -242,7 +242,7 @@ class Person(Dialogflow):
             cursor.execute(query, (self.customer['id']))
             categories = cursor.fetchone()
 
-            speech = ""
+            fulfillmentText = ""
             totalExpenses = 0
 
             category_es = {
@@ -262,17 +262,14 @@ class Person(Dialogflow):
             for (categoryName, expense) in categories.items():
                 if (expense > 0):
                     category = category_es[categoryName]
-                    speech += "%.0f€ %s %s\r\n" % (expense, category['name'], category['emoji'])
+                    fulfillmentText += "%.0f€ %s %s\r\n" % (expense, category['name'], category['emoji'])
                     totalExpenses += expense
 
             if (totalExpenses > 0):
-                speech += "\r\n%.0f€ Total" % (totalExpenses)
+                fulfillmentText += "\r\n%.0f€ Total" % (totalExpenses)
             else:
-                speech += "No has gastado nada!"
-
-            return {
-                'speech': speech
-            }
+                fulfillmentText += "No has gastado nada!"
+            self.set_fulfillmentText(fulfillmentText)
 
     def getSaltEdgeLoginUrl(self):
         """
