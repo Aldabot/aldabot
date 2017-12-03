@@ -41,8 +41,14 @@ def handler(event, context):
     # get DIALOGFLOW parameters
     if 'fulfillmentText' in request['queryResult']:
         fulfillment_speech = request['queryResult']['fulfillmentText']
-    sender_id = request['originalDetectIntentRequest']['payload']['sender']['id']
+    # if sender does not exist set sender id to facebook profil of Dirk (DEBUGGING)
+    if 'sender' in request['originalDetectIntentRequest']['payload']:
+        sender_id = request['originalDetectIntentRequest']['payload']['sender']['id']
+    else:
+        sender_id = '1705514732805822'
+
     facebook_id = sender_id
+
     person = Person(connection, facebook_id)
     message = request['queryResult']['queryText']
     intentName = request['queryResult']['intent']['displayName']
@@ -73,11 +79,13 @@ def handler(event, context):
     else:
         fulfillment = prepareNotUnderstood()
 
+
     with connection.cursor() as cursor:
         sql = "INSERT INTO `conversation` (`message`, `response`, `sender_id`) VALUES (%s, %s, %s)"
         cursor.execute(sql, (message, person.get_fulfillmentText(), sender_id))
         connection.commit()
 
+    person.set_facebook_button("text", "title", "https://www.messenger.com")
     return person.get_response()
 
 

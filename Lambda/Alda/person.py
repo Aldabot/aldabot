@@ -389,6 +389,7 @@ class Person(Dialogflow):
         }
 
 
+
 # def queryBalance(customer, request):
 #     with connection.cursor() as cursor:
 #         speech = "Hola %s, \n\r\n\r" % (customer.customer['first_name'])
