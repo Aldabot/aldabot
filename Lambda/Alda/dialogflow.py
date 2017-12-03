@@ -26,9 +26,23 @@ class Dialogflow:
         return self.__response
 
     @classmethod
-    def set_facebook_button(self, fulfillmentText, title, url):
+    def set_messenger_button(self, fulfillmentText, title, url):
         self.__webhook_response['fulfillmentText'] = fulfillmentText
         messenger_button_template = Messenger.get_button_template(fulfillmentText, title, url)
+        self.__webhook_response['fulfillmentMessages'] = [{
+            "payload": {
+                "facebook": messenger_button_template
+            }
+        }]
+
+    @classmethod
+    def not_understood(self):
+        self.set_fulfillmentText("No te entiendo?")
+
+    @classmethod
+    def set_two_messenger_buttons(self, fulfillmentText, title_1, url_1, title_2, url_2):
+        self.__webhook_response['fulfillmentText'] = fulfillmentText
+        messenger_button_template = Messenger.get_two_button_templates(fulfillmentText, title_1, url_1, title_2, url_2)
         self.__webhook_response['fulfillmentMessages'] = [{
             "payload": {
                 "facebook": messenger_button_template

@@ -15,7 +15,7 @@ class Messenger():
                 "payload": {
                     "buttons": buttons,
                     "template_type": "button",
-                    "text": "What do you want to do next?"
+                    "text": text
                 },
                 "type": "template"
             }
@@ -26,16 +26,20 @@ class Messenger():
         if self.is_valid_url(url):
             return {
                 "url": url,
-                "title": "Visit Messenger",
+                "title": title,
                 "type": "web_url"
             }
         else:
-            logger.error("URL for messenger button is not valid!")
+            logger.error("URL for messenger button is not valid: %s" % (url))
             sys.exit()
 
     @classmethod
     def get_button_template(self, text, title, url):
         return self.button_template(text, [self.url_button(title, url)])
+
+    @classmethod
+    def get_two_button_templates(self, text, title_1, url_1, title_2, url_2):
+        return self.button_template(text, [self.url_button(title_1, url_1), self.url_button(title_2, url_2)])
 
     @staticmethod
     def is_valid_url(url):

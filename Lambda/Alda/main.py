@@ -7,6 +7,7 @@ import datetime
 from saltedge import SaltEdge
 from person import Person
 import configparser
+from dialogflow import Dialogflow
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -40,7 +41,11 @@ def handler(event, context):
 
     # get DIALOGFLOW parameters
     if 'fulfillmentText' in request['queryResult']:
+        has_fulfillment_speech = True
         fulfillment_speech = request['queryResult']['fulfillmentText']
+    else:
+        has_fulfillment_speech = False
+        
     # if sender does not exist set sender id to facebook profil of Dirk (DEBUGGING)
     if 'sender' in request['originalDetectIntentRequest']['payload']:
         sender_id = request['originalDetectIntentRequest']['payload']['sender']['id']
@@ -61,31 +66,29 @@ def handler(event, context):
             person.initialize()
 
     # LOGIC
+    # elif intentName == "alda.define.budget":
+    #     fulfillment = defineBudget(facebook_id, request)
+    # elif intentName == "alda.query.budget":
+    #     fulfillment = queryBudget(facebook_id)
     fulfillment = {}
     if intentName == "alda.initialize":
-        fulfillment = person.initialize()
+        person.initialize()
     elif intentName == "alda.add.bank":
-        fulfillment = person.addBank()
+        person.addBank()
     elif intentName == "alda.query.balance":
         person.queryBalance()
-    elif intentName == "alda.define.budget":
-        fulfillment = defineBudget(facebook_id, request)
-    elif intentName == "alda.query.budget":
-        fulfillment = queryBudget(facebook_id)
     elif intentName == "alda.query.expenses":
-        fulfillment = person.getExpenses()
-    elif fulfillment_speech:
-        fulfillment = {"speech": fulfillment_speech}
+        person.queryExpenses()
+    elif has_fulfillment_speech:
+        Dialogflow.set_fulfillmentText(fulfillment_speech)
     else:
-        fulfillment = prepareNotUnderstood()
-
+        Dialogflow.not_understood()
 
     with connection.cursor() as cursor:
         sql = "INSERT INTO `conversation` (`message`, `response`, `sender_id`) VALUES (%s, %s, %s)"
         cursor.execute(sql, (message, person.get_fulfillmentText(), sender_id))
         connection.commit()
 
-    person.set_facebook_button("text", "title", "https://www.messenger.com")
     return person.get_response()
 
 
@@ -147,13 +150,6 @@ def queryBudget(facebook_id):
     introduction_response = "Estas bien..."
 
     speech = introduction_response+"\r\n\r\n"+day_response+"\r\n"+month_response
-    return {
-        'speech': speech
-    }
-
-
-def prepareNotUnderstood():
-    speech = "No te entiendo?"
     return {
         'speech': speech
     }

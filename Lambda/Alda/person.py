@@ -141,8 +141,7 @@ class Person(Dialogflow):
         saltedge_connect_url = self.getSaltEdgeLoginUrl()
         speech = ("Lo primero que tendrás que hacer es iniciar sesión en tu cuenta bancaria para poderacceder a tu"
                   " información financiera.")
-        return self.getTwoFacebookButtons(speech, "Iniciar sesión", saltedge_connect_url, "Demo",
-                                          "http://aldabot.es")
+        self.set_two_messenger_buttons(speech, "Iniciar sesión", saltedge_connect_url, "Demo", "http://aldabot.es")
 
     def refresh(self):
         logger.info('Person.refresh()')
@@ -186,8 +185,8 @@ class Person(Dialogflow):
         logger.info("Adding Bank")
         saltedge_connect_url = self.getSaltEdgeLoginUrl()
         logger.info("got Login URL")
-        speech = "Tendrás que iniciar sesión en tu cuenta bancaria para poder acceder a tu información financiera."
-        return self.getFacebookButton(speech, "Añadir Banco", saltedge_connect_url)
+        text = "Tendrás que iniciar sesión en tu cuenta bancaria para poder acceder a tu información financiera."
+        self.set_messenger_button(text, "Añadir Banco", saltedge_connect_url)
 
     def queryBalance(self):
         logger.info("Person.getBalance()")
@@ -202,7 +201,7 @@ class Person(Dialogflow):
         fulfillmentText += "\n\rTotal: %.0f € 📈" % (totalBalance)
         self.set_fulfillmentText(fulfillmentText)
 
-    def getExpenses(self):
+    def queryExpenses(self):
         with self.connection.cursor() as cursor:
             query = """
                 SELECT
