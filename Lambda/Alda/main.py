@@ -45,7 +45,7 @@ def handler(event, context):
         fulfillment_speech = request['queryResult']['fulfillmentText']
     else:
         has_fulfillment_speech = False
-        
+
     # if sender does not exist set sender id to facebook profil of Dirk (DEBUGGING)
     if 'sender' in request['originalDetectIntentRequest']['payload']:
         sender_id = request['originalDetectIntentRequest']['payload']['sender']['id']
@@ -70,7 +70,6 @@ def handler(event, context):
     #     fulfillment = defineBudget(facebook_id, request)
     # elif intentName == "alda.query.budget":
     #     fulfillment = queryBudget(facebook_id)
-    fulfillment = {}
     if intentName == "alda.initialize":
         person.initialize()
     elif intentName == "alda.add.bank":
