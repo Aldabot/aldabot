@@ -6,6 +6,7 @@ import requests
 from saltedge import SaltEdge
 import datetime
 import configparser
+from dialogflow import Dialogflow
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -14,7 +15,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-class Person:
+class Person(Dialogflow):
     def __init__(self, connection, facebook_id):
         """
         :param facebook_id: string
@@ -199,7 +200,7 @@ class Person:
 
         speech += "\n\rTotal: %.0f € 📈" % (totalBalance)
         return {
-            'speech': speech
+            'fulfillmentText': speech
         }
 
     def getExpenses(self):

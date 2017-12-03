@@ -41,12 +41,13 @@ def handler(event, context):
     request = json.loads(event['body'])
 
     # get DIALOGFLOW parameters
-    fulfillment_speech = request['result']['fulfillment']['speech']
-    sender_id = request['originalRequest']['data']['sender']['id']
+    if 'fulfillmentText' in request['queryResult']:
+        fulfillment_speech = request['queryResult']['fulfillmentText']
+    sender_id = request['originalDetectIntentRequest']['payload']['sender']['id']
     facebook_id = sender_id
     person = Person(connection, facebook_id)
-    message = request['result']['resolvedQuery']
-    intentName = request['result']['metadata']['intentName']
+    message = request['queryResult']['queryText']
+    intentName = request['queryResult']['intent']['displayName']
 
     # if not first time interaction try to refresh data
     if intentName != "alda.initialize":
@@ -79,10 +80,10 @@ def handler(event, context):
 
     with connection.cursor() as cursor:
         sql = "INSERT INTO `conversation` (`message`, `response`, `sender_id`) VALUES (%s, %s, %s)"
-        cursor.execute(sql, (message, fulfillment['speech'], sender_id))
+        cursor.execute(sql, (message, fulfillment['fulfillmentText'], sender_id))
         connection.commit()
 
-    return response
+    return person.get_response()
 
 
 def defineBudget(sender_id, request):
