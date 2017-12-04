@@ -8,16 +8,49 @@ logger.setLevel(logging.INFO)
 
 class Dialogflow:
 
+    sender_id = ''
+    query_text = ''
+    intent_name = ''
+    has_fullfilment = False
+
+    __request = ''
     __response = {'statusCode': 200, 'body': {}}
-    __webhook_response = {'fulfillmentText': "No te entiendo?"}
+    # following https://dialogflow.com/docs/reference/api-v2/rest/v2beta1/WebhookResponse
+    __webhook_response = {
+        'fulfillmentText': "No te entiendo?",
+        'fulfillmentMessages': [{
+            'text': ['No te entiendo?']
+        }]
+    }
+
+    def __init__(self, request):
+        self.__request = request
+
+        # if messages don't come from Messenger there won't be a sender_id
+        # ( for testing via Dialogflow, set my facebook_id as sender_id, otherwise Lambda will break )
+        if 'sender' in request['originalDetectIntentRequest']['payload']:
+            self.sender_id = request['originalDetectIntentRequest']['payload']['sender']['id']
+        else:
+            self.sender_id = '1705514732805822'
+
+        self.query_text = request['queryResult']['queryText']
+        self.intent_name = request['queryResult']['intent']['displayName']
 
     @classmethod
-    def set_fulfillmentText(self, fulfillmentText):
+    def set_fulfillment_text(self, fulfillmentText):
         self.__webhook_response['fulfillmentText'] = fulfillmentText
 
     @classmethod
-    def get_fulfillmentText(self):
+    def get_fulfillment_text(self):
         return self.__webhook_response['fulfillmentText']
+
+    @classmethod
+    def set_received_fulfillment(self):
+        self.__webhook_response['fulfillmentMessages'] = self.request['queryResult']['fulfillmentMessages']
+
+    @classmethod
+    def set_fullfillment_messages(self, messages):
+        self.__webhook_response['fulfillmentMessages'] = messages
 
     @classmethod
     def get_response(self):
@@ -48,3 +81,14 @@ class Dialogflow:
                 "facebook": messenger_button_template
             }
         }]
+
+    @classmethod
+    def has_fulfillment(self):
+        if 'sender' in self.request['originalDetectIntentRequest']['payload']:
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def __text_message(text):
+        return {'text': text}

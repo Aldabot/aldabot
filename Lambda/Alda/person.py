@@ -16,7 +16,7 @@ logger.setLevel(logging.INFO)
 
 
 class Person(Dialogflow):
-    def __init__(self, connection, facebook_id):
+    def __init__(self, connection, request):
         """
         :param facebook_id: string
         :init: Initializes Customer with customer_id, login_ids and account_ids
@@ -25,8 +25,9 @@ class Person(Dialogflow):
         self.connection = connection
         self.saltedge = SaltEdge(config['DEFAULT']['saltedgeClientId'], config['DEFAULT']['saltedgeServiceSecret'],
                                  'private.pem', 'public.pem')
+        self.dialogflow = Dialogflow(request)
         self.customer = {}
-        self.facebook_id = facebook_id
+        self.facebook_id = self.dialogflow.sender_id
 
         # if not registered create person
         # else get person_id and customer_id
@@ -199,7 +200,7 @@ class Person(Dialogflow):
                 totalBalance += account['balance']
 
         fulfillmentText += "\n\rTotal: %.0f € 📈" % (totalBalance)
-        self.set_fulfillmentText(fulfillmentText)
+        self.set_fulfillment_text(fulfillmentText)
 
     def queryExpenses(self):
         with self.connection.cursor() as cursor:
@@ -268,7 +269,7 @@ class Person(Dialogflow):
                 fulfillmentText += "\r\n%.0f€ Total" % (totalExpenses)
             else:
                 fulfillmentText += "No has gastado nada!"
-            self.set_fulfillmentText(fulfillmentText)
+            self.set_fulfillment_text(fulfillmentText)
 
     def getSaltEdgeLoginUrl(self):
         """
