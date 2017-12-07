@@ -277,8 +277,8 @@ class Person(Dialogflow):
         amount_to_save = self.get_currency_amount()[0]
         today = datetime.datetime.now().date()
         months_difference = relativedelta.relativedelta(until_date, today).months
-        monthly_income = 1842
-        monthly_rent = 670
+        monthly_income = self.get_monthly_income()
+        monthly_rent = self.get_monthly_expenses()
         weekly_spending_budget = self.get_weekly_spending_target(amount_to_save, until_date, monthly_income,
                                                                  monthly_rent)
 
@@ -317,6 +317,54 @@ class Person(Dialogflow):
 
         weekly_spending_budget = (months_difference*(monthly_income - monthly_rent) - amount_to_save) / weeks_difference
         return round(weekly_spending_budget)
+
+    def get_monthly_expenses(self):
+        """ Fetch monthly expenses
+
+        Result:
+            Fetches the monthly expenses from all accounts of the user via the customer_id. The expenses are measured by
+            the negated sum over all transactions with a 'mortgage_and_rent' lebeled category. If none of the
+            transactions is labeled as expense returns 0.
+        """
+        with self.connection.cursor() as cursor:
+            query = """
+                SELECT -SUM(t.`amount`) AS monthly_expenses
+                FROM saltedge_transaction t
+                    INNER JOIN saltedge_account a ON t.`account_id` = a.`id`
+                    INNER JOIN saltedge_login l ON a.`login_id` = l.`id`
+                    INNER JOIN saltedge_customer c ON l.`customer_id` = c.`id`
+                WHERE c.`id` = %s AND t.`category` = 'mortgage_and_rent' AND t.`made_on` > '2017-11-01'
+            """
+            cursor.execute(query, (self.customer['id']))
+            monthly_expenses = cursor.fetchone()['monthly_expenses']
+            if monthly_expenses:
+                return monthly_expenses
+            else:
+                return 0
+
+    def get_monthly_income(self):
+        """ Fetch monthly income
+
+        Result:
+            Fetches the monthly income from all accounts of the user via the customer_id. The income is measured by the
+            sum over all transactions with an 'income' labeled category. If none of the transactions is labeled as
+            income returs 0.
+        """
+        with self.connection.cursor() as cursor:
+            query = """
+                SELECT SUM(t.`amount`) AS monthly_income
+                FROM saltedge_transaction t
+                    INNER JOIN saltedge_account a ON t.`account_id` = a.`id`
+                    INNER JOIN saltedge_login l ON a.`login_id` = l.`id`
+                    INNER JOIN saltedge_customer c ON l.`customer_id` = c.`id`
+                WHERE c.`id` = %s AND t.`category` = 'income' AND t.`made_on` > '2017-11-01'
+            """
+            cursor.execute(query, (self.customer['id']))
+            monthly_income = cursor.fetchone()['monthly_income']
+            if monthly_income:
+                return monthly_income
+            else:
+                return 0
 
     def getSaltEdgeLoginUrl(self):
         """
