@@ -7,6 +7,7 @@ from saltedge import SaltEdge
 import datetime
 import configparser
 from dialogflow import Dialogflow
+from dateutil import relativedelta
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -271,6 +272,52 @@ class Person(Dialogflow):
                 fulfillmentText += "No has gastado nada!"
             self.set_fulfillment_text(fulfillmentText)
 
+    def define_budget_ask_for_amount_and_date(self):
+        until_date = self.get_date_parameter()
+        amount_to_save = self.get_currency_amount()[0]
+        today = datetime.datetime.now().date()
+        months_difference = relativedelta.relativedelta(until_date, today).months
+        monthly_income = 1842
+        monthly_rent = 670
+        weekly_spending_budget = self.get_weekly_spending_target(amount_to_save, until_date, monthly_income,
+                                                                 monthly_rent)
+
+        fulfillment_text = ("Esto es en %.0f meses podemos hacerlo. 👍 Ganas €%.0f gastas €%.0f al mes, "
+                            "dejándonos con un objectivo de gastos semanal de €%.0f. 🎯  LLega a eso y "
+                            "ahorramos €%.0f en %.0f meses."
+                            % (months_difference, monthly_income, monthly_rent, weekly_spending_budget, amount_to_save,
+                               months_difference))
+        self.set_fulfillment_text(fulfillment_text)
+
+    def get_weekly_spending_target(self, amount_to_save, until_date, monthly_income, monthly_rent):
+        """ Calculates the weekly spending target.
+
+        Args:
+            until_date: the datetime until the amount_to_save must be saved
+            amount_to_save: amount the user wants to save
+
+        Returns:
+            The weekly spending target calculated by:
+            = ( $months * ( $income - $rent ) - $amount_to_save ) / $weeks
+
+            where:
+            $months: difference in months between today and given $until_date
+            $income: monthly earnings (Saltedge category: 'income' )
+            $rent: monthly spending in rent (Saltedge category: 'mortgage_and_rent')
+            $amount_to_save: given amount the user wants to saved
+            $weeks: difference in weeks between today and given $until_date
+
+        To Improve:
+            - weeks_difference is not accurate ( month / 4)
+            - categorization used to get income and rent spendings
+        """
+        today = datetime.datetime.now().date()  # .date() necesary to make datetime comparable with dateutil parsed date
+        months_difference = relativedelta.relativedelta(until_date, today).months
+        weeks_difference = months_difference * 4
+
+        weekly_spending_budget = (months_difference*(monthly_income - monthly_rent) - amount_to_save) / weeks_difference
+        return round(weekly_spending_budget)
+
     def getSaltEdgeLoginUrl(self):
         """
         :return: SaltEdge connect url
@@ -332,61 +379,6 @@ class Person(Dialogflow):
             else:
                 return False
 
-    @staticmethod
-    def getFacebookButton(speech, title, url):
-        return {
-            'speech': speech,
-            "data": {
-                "facebook": {
-                  "attachment": {
-                    "type": "template",
-                    "payload": {
-                        "template_type": "button",
-                        "text": speech,
-                        "buttons": [
-                          {
-                            "type": "web_url",
-                            "url": url,
-                            "title": title,
-                            "webview_height_ratio": "tall"
-                          }
-                        ]
-                    }
-                  }
-                }
-            }
-        }
-
-    @staticmethod
-    def getTwoFacebookButtons(speech, title_1, url_1, title_2, url_2):
-        return {
-            'speech': speech,
-            "data": {
-                "facebook": {
-                  "attachment": {
-                    "type": "template",
-                    "payload": {
-                        "template_type": "button",
-                        "text": speech,
-                        "buttons": [
-                          {
-                            "type": "web_url",
-                            "url": url_1,
-                            "title": title_1,
-                            "webview_height_ratio": "tall"
-                          },
-                          {
-                            "type": "web_url",
-                            "url": url_2,
-                            "title": title_2,
-                            "webview_height_ratio": "tall"
-                          }
-                        ]
-                    }
-                  }
-                }
-            }
-        }
 
 
 

@@ -36,6 +36,7 @@ logger.info("SUCCESS: Connection to RDS mysql instance succeeded")
 # [{\n "text": {\n "text": ["Llegaste al lugar correcto! 💰"]\n }\n },
 # {\n "text": {\n "text": ["Cuanto dinero quieres ahorrar para cuando?"]\n }\n }]
 
+
 def handler(event, context):
     print(event)
 
@@ -43,25 +44,27 @@ def handler(event, context):
     person = Person(connection, request)
 
     # if not first time interaction try to refresh data
-    if person.intentName != "alda.initialize":
+    if person.intent_name != "alda.initialize":
         if person.isRegistered:
             person.refresh()
         else:
             person.initialize()
 
     # LOGIC
-    # elif person.intentName == "alda.define.budget":
+    # elif person.intent_name == "alda.define.budget":
     #     fulfillment = defineBudget(facebook_id, request)
-    # elif person.intentName == "alda.query.budget":
+    # elif person.intent_name == "alda.query.budget":
     #     fulfillment = queryBudget(facebook_id)
-    if person.intentName == "alda.initialize":
+    if person.intent_name == "alda.initialize":
         person.initialize()
-    elif person.intentName == "alda.add.bank":
+    elif person.intent_name == "alda.add.bank":
         person.addBank()
-    elif person.intentName == "alda.query.balance":
+    elif person.intent_name == "alda.query.balance":
         person.queryBalance()
-    elif person.intentName == "alda.query.expenses":
+    elif person.intent_name == "alda.query.expenses":
         person.queryExpenses()
+    elif person.intent_name == "alda.define.budget.askForAmountAndDate":
+        person.define_budget_ask_for_amount_and_date()
     elif person.has_fulfillment:
         person.set_received_fulfillment()
     else:
@@ -69,7 +72,7 @@ def handler(event, context):
 
     with connection.cursor() as cursor:
         sql = "INSERT INTO `conversation` (`message`, `response`, `sender_id`) VALUES (%s, %s, %s)"
-        cursor.execute(sql, (person.queryText, person.get_fulfillmentText(), person.sender_id))
+        cursor.execute(sql, (person.query_text, person.get_fulfillment_text(), person.sender_id))
         connection.commit()
 
     return person.get_response()

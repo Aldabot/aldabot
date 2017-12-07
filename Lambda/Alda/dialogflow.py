@@ -1,6 +1,7 @@
 import json
 import logging
 from messenger import Messenger
+import dateutil.parser
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -13,32 +14,59 @@ class Dialogflow:
     intent_name = ''
     has_fullfilment = False
 
-    __request = ''
+    __request = {}
     __response = {'statusCode': 200, 'body': {}}
     # following https://dialogflow.com/docs/reference/api-v2/rest/v2beta1/WebhookResponse
     __webhook_response = {
         'fulfillmentText': "No te entiendo?",
         'fulfillmentMessages': [{
-            'text': ['No te entiendo?']
-        }]
+            "platform": "facebook",
+            "text": [{
+                "text": "No te entiendo?"
+            }]
+        }],
+        'source': "facebook"
     }
 
     def __init__(self, request):
-        self.__request = request
+        logger.info("Dialogflow: __init__")
+        Dialogflow.__request = request
+
+        self.__webhook_response = {
+            'fulfillmentText': "No te entiendo?",
+            'fulfillmentMessages': [{
+                "platform": "facebook",
+                "text": [{
+                    "text": "No te entiendo?"
+                }]
+            }],
+            'source': "facebook"
+        }
+
+        logger.info(request)
+        logger.info(self.__request)
 
         # if messages don't come from Messenger there won't be a sender_id
         # ( for testing via Dialogflow, set my facebook_id as sender_id, otherwise Lambda will break )
         if 'sender' in request['originalDetectIntentRequest']['payload']:
-            self.sender_id = request['originalDetectIntentRequest']['payload']['sender']['id']
+            Dialogflow.sender_id = request['originalDetectIntentRequest']['payload']['sender']['id']
         else:
-            self.sender_id = '1705514732805822'
+            Dialogflow.sender_id = '1705514732805822'
 
-        self.query_text = request['queryResult']['queryText']
-        self.intent_name = request['queryResult']['intent']['displayName']
+        Dialogflow.query_text = request['queryResult']['queryText']
+        Dialogflow.intent_name = request['queryResult']['intent']['displayName']
 
     @classmethod
     def set_fulfillment_text(self, fulfillmentText):
         self.__webhook_response['fulfillmentText'] = fulfillmentText
+        self.__webhook_response.pop('fulfillmentMessages', None)
+        # self.__webhook_response['fulfillmentMessages'] = [{
+        #     "platform": "facebook",
+        #     "text": [{
+        #         "text": fulfillmentText
+        #     }]
+        # }]
+        # self.__webhook_response['source'] = "facebook"
 
     @classmethod
     def get_fulfillment_text(self):
@@ -46,7 +74,33 @@ class Dialogflow:
 
     @classmethod
     def set_received_fulfillment(self):
-        self.__webhook_response['fulfillmentMessages'] = self.request['queryResult']['fulfillmentMessages']
+        logger.info(self.__request)
+        logger.info(self.__request['queryResult'])
+        self.__webhook_response.pop('fulfillmentText', None)
+        self.__webhook_response['fulfillmentText'] = self.__request['queryResult']['fulfillmentMessages'][0]['text']['text']
+
+  #       self.__webhook_response['fulfillmentMessages'] = [
+  #   {
+  #     "platform": "FACEBOOK",
+  #     "text": {
+  #       "text": ["Title: this is a title"]
+  #     }
+  #   },
+  #   {
+  #     "platform": "FACEBOOK",
+  #      "text": {
+  #        "text": ["Title: this is a title"]
+  #      }
+  #   }
+  # ]
+        self.__webhook_response['source'] = "FACEBOOK"
+        # for message in self.__webhook_response['fulfillmenMessages']:
+        #     message['platform'] = "facebook"
+        # self.__webhook_response['source'] = "facebook"
+
+        # self.__webhook_response['fulfillmentMessages'] = self.__request['queryResult']['fulfillmentMessages']
+        # for message in self.__webhook_response['fulfillmentMessages']:
+        #     message['platform'] = "FACEBOOK"
 
     @classmethod
     def set_fullfillment_messages(self, messages):
@@ -71,6 +125,26 @@ class Dialogflow:
     @classmethod
     def not_understood(self):
         self.set_fulfillmentText("No te entiendo?")
+
+    @classmethod
+    def get_date_parameter(self):
+        """ Gets the date 'YYYY-mm-dd' from Dialogflow's transmitted date parameter
+
+        Return:
+            Date-parameter as datetime.date() (in the 'YYYY-mm-dd' format)
+        """
+        date_parameter = self.__request['queryResult']['parameters']['date']
+        return dateutil.parser.parse(date_parameter).date()
+
+    @classmethod
+    def get_currency_amount(self):
+        """ Gets the currency and the amount from Dialogflow's parameters
+
+        Return:
+            Tuple: (amount as Int, currency as String)
+        """
+        unit_currency = self.__request['queryResult']['parameters']['unit-currency']
+        return (unit_currency['amount'], unit_currency['currency'])
 
     @classmethod
     def set_two_messenger_buttons(self, fulfillmentText, title_1, url_1, title_2, url_2):
