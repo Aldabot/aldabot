@@ -17,12 +17,13 @@ logger.setLevel(logging.INFO)
 
 
 class Person(Dialogflow):
-    def __init__(self, connection, request):
+    def __init__(self, connection, request, translate):
         """
         :param facebook_id: string
         :init: Initializes Customer with customer_id, login_ids and account_ids
                - Customer 1:many Logins 1:many Accounts
         """
+        self.translate = translate
         self.connection = connection
         self.saltedge = SaltEdge(config['DEFAULT']['saltedgeClientId'], config['DEFAULT']['saltedgeServiceSecret'],
                                  'private.pem', 'public.pem')
@@ -192,15 +193,15 @@ class Person(Dialogflow):
 
     def queryBalance(self):
         logger.info("Person.getBalance()")
-        fulfillmentText = "Hola %s 😊, \n\r\n\r" % (self.first_name)
+        fulfillmentText = ""  # "Hola %s 😊, \n\r" % (self.first_name)
         totalBalance = 0
         for login in self.customer['logins']:
             for account in login['accounts']:
-                fulfillmentText += "%.10s (%.4s): %.0f € \n" % (account['nature'], account['name'][-4:],
-                                                                account['balance'])
+                fulfillmentText += "%.10s (%.4s): %.0f € \n" % (self.translate.getTranslation(account['nature']),
+                                                                account['name'][-4:], account['balance'])
                 totalBalance += account['balance']
 
-        fulfillmentText += "\n\rTotal: %.0f € 📈" % (totalBalance)
+        fulfillmentText += "\rTotal: %.0f € 📈" % (totalBalance)
         self.set_fulfillment_text(fulfillmentText)
 
     def queryExpenses(self):
@@ -278,13 +279,14 @@ class Person(Dialogflow):
         today = datetime.datetime.now().date()
         months_difference = relativedelta.relativedelta(until_date, today).months
         monthly_income = self.get_monthly_income()
-        monthly_rent = self.get_monthly_expenses()
+        monthly_rent = 630 # self.get_monthly_expenses()
         weekly_spending_budget = self.get_weekly_spending_target(amount_to_save, until_date, monthly_income,
                                                                  monthly_rent)
 
-        fulfillment_text = ("Esto es en %.0f meses podemos hacerlo. 👍 Ganas €%.0f gastas €%.0f al mes, "
-                            "dejándonos con un objectivo de gastos semanal de €%.0f. 🎯  LLega a eso y "
-                            "ahorramos €%.0f en %.0f meses."
+        fulfillment_text = ("Esto es en %.0f meses podemos hacerlo. 👍 \r\n"
+                            "Ganas %.0f € y gastas %.0f € al mes, dejándonos con un objectivo de gastos semanal de "
+                            "%.0f €. 🎯 \r\n"
+                            "LLega a eso y ahorramos \r\n %.0f € en %.0f meses."
                             % (months_difference, monthly_income, monthly_rent, weekly_spending_budget, amount_to_save,
                                months_difference))
         self.set_fulfillment_text(fulfillment_text)

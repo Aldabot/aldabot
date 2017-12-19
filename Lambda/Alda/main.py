@@ -8,6 +8,7 @@ from saltedge import SaltEdge
 from person import Person
 import configparser
 from dialogflow import Dialogflow
+from translate import Language, Translate
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -40,8 +41,10 @@ logger.info("SUCCESS: Connection to RDS mysql instance succeeded")
 def handler(event, context):
     print(event)
 
+    # set Language to Spanish
+    translate = Translate(Language.SPANISH)
     request = json.loads(event['body'])
-    person = Person(connection, request)
+    person = Person(connection, request, translate)
 
     # if not first time interaction try to refresh data
     if person.intent_name != "alda.initialize":
