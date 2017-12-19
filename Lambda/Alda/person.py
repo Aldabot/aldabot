@@ -17,12 +17,13 @@ logger.setLevel(logging.INFO)
 
 
 class Person(Dialogflow):
-    def __init__(self, connection, request):
+    def __init__(self, connection, request, translate):
         """
         :param facebook_id: string
         :init: Initializes Customer with customer_id, login_ids and account_ids
                - Customer 1:many Logins 1:many Accounts
         """
+        self.translate = translate
         self.connection = connection
         self.saltedge = SaltEdge(config['DEFAULT']['saltedgeClientId'], config['DEFAULT']['saltedgeServiceSecret'],
                                  'private.pem', 'public.pem')
@@ -196,8 +197,8 @@ class Person(Dialogflow):
         totalBalance = 0
         for login in self.customer['logins']:
             for account in login['accounts']:
-                fulfillmentText += "%.10s (%.4s): %.0f € \n" % (account['nature'], account['name'][-4:],
-                                                                account['balance'])
+                fulfillmentText += "%.10s (%.4s): %.0f € \n" % (self.translate.getTranslation(account['nature']),
+                                                                account['name'][-4:], account['balance'])
                 totalBalance += account['balance']
 
         fulfillmentText += "\rTotal: %.0f € 📈" % (totalBalance)
