@@ -192,7 +192,7 @@ class Person(Dialogflow):
 
     def queryBalance(self):
         logger.info("Person.getBalance()")
-        fulfillmentText = "Hola %s 😊, \n\r" % (self.first_name)
+        fulfillmentText = ""  # "Hola %s 😊, \n\r" % (self.first_name)
         totalBalance = 0
         for login in self.customer['logins']:
             for account in login['accounts']:
