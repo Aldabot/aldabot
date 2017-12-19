@@ -4,12 +4,14 @@ from enum import Enum
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+
 class Language(Enum):
     SPANISH = 1
 
+
 class Translate():
 
-    _language = Language.Spanish
+    _language = Language.SPANISH
     _sp_dictionary = {
         'account': 'Cuenta',
         'checking': 'Cuenta',

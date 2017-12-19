@@ -8,8 +8,7 @@ from saltedge import SaltEdge
 from person import Person
 import configparser
 from dialogflow import Dialogflow
-from translate import Language
-from translate import Translate
+from translate import Language, Translate
 
 config = configparser.ConfigParser()
 config.read('config.ini')
