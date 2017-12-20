@@ -14,8 +14,16 @@ class Translate():
     _language = Language.SPANISH
     _sp_dictionary = {
         'account': 'Cuenta',
+        'bonus': 'Bonificación',
+        'card': 'Tarjeta',
         'checking': 'Cuenta',
         'credit_card': 'Tarjeta',
+        'debit_card': 'Tarjeta',
+        'ewallet': 'Billetera',
+        'insurance': 'Seguro',
+        'investment': 'Inversión',
+        'mortgage': 'Hipoteca',
+        'savings': 'Ahorros',
         'loan': 'Préstamo'
     }
 
@@ -38,4 +46,7 @@ class Translate():
             - error when word cannot be translated (is not contained in _language_dictionary)
         """
 
-        return self._sp_dictionary[word]
+        if word in self._sp_dictionary:
+            return self._sp_dictionary[word]
+        else:
+            return word
