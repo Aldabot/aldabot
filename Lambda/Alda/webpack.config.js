@@ -1,5 +1,7 @@
 var path = require("path");
 var fs = require("fs");
+var CopyWebpackPlugin = require('copy-webpack-plugin');
+
 
 module.exports = {
   entry: fs.readdirSync(path.join(__dirname, "./lambdas"))
@@ -33,8 +35,16 @@ module.exports = {
       },
       {
         test: /\.json$/,
-        loader: 'json'
+        loader: 'json-loader'
       }
     ]
-  }
+  },
+  plugins: [
+    new CopyWebpackPlugin([
+      {
+        from: '.env',
+        flatten: true
+      }
+    ]),
+  ]
 };
