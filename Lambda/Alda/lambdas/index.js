@@ -1,28 +1,39 @@
 
 /* @flow */
 
-import request from "request";
-import Dialogflow from "../lib/dialogflow";
+import request from 'request';
+import Dialogflow from '../lib/dialogflow';
+import Lambda from '../lib/lambda';
+import Facebook from '../lib/facebook';
 
 require('dotenv').config(); // process.env.<WHATEVER>
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 const DIALOGFLOW_CLIENT_ACCESS_TOKEN = process.env.DIALOGFLOW_CLIENT_ACCESS_TOKEN;
 
-var d = new Dialogflow(DIALOGFLOW_CLIENT_ACCESS_TOKEN);
-d.getIntent('saldo').then((intent) => {
-  console.log(intent)
-});
-
 type HelloOptions = {
   name: string
 };
 
-export function hello(event: HelloOptions, context: any, callback): void {
+export function handler(event: HelloOptions, context: any, callback): void {
+  console.info("START Lambda handler");
+  console.log(callback);
+  // callback(null, {
+  //   statusCode: 200,
+  //   headers: {
+  //       "x-custom-header" : "my custom header value"
+  //   },
+  //   body: 'jo'
+  // });
   console.info(event);
-  console.info(context);
+  // console.info(context);
   let httpMethod = event.httpMethod;
   let queryStringParameters = event.queryStringParameters;
   let body = JSON.parse(event.body);
+
+  const facebook = new Facebook(PAGE_ACCESS_TOKEN, body);
+  const sender_psid = facebook.getSenderPSID();
+  const dialogflow = new Dialogflow(DIALOGFLOW_CLIENT_ACCESS_TOKEN, sender_psid);
+  const lambda = new Lambda(callback);
 
   switch(httpMethod) {
     case "GET":
@@ -30,7 +41,16 @@ export function hello(event: HelloOptions, context: any, callback): void {
       break;
       // respond(200, `httpMethod: ${httpMethod}`, callback);
     case "POST":
-      messengerPOST(body, callback);
+      let messageText = facebook.getMessageText();
+      dialogflow.getIntent(messageText).then((intent) => {
+        console.log('INTENT');
+        console.log(intent);
+        facebook.sendTextToMessenger(intent).then(() =>{
+          lambda.respond(200, '');
+        });
+      });
+
+      //lambda.respond(200, '');
       break;
     default:
       console.error(`Unsuported httpMethod: ${httpMethod}`);

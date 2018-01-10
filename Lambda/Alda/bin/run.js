@@ -4,6 +4,11 @@ const lambdaModule = require(`../dist/${requiredLambda[0]}.js`);
 const lambda = lambdaModule[requiredLambda[1]];
 const options = JSON.parse(args[3]);
 
+console.log(process.argv);
+console.log(`requiredLambda: ${requiredLambda}`);
+console.log(`lambdaModule: ${lambdaModule}`);
+console.log(`lambda: ${lambda}`);
+
 function succeed(result) {
   console.log(result);
   process.exit(0);
