@@ -1,41 +1,29 @@
-// You can find your project ID in your Dialogflow agent settings
-const projectId = 'newagent-91a6d3'; //https://dialogflow.com/docs/agents#settings
-const sessionId = 'quickstart-session-id';
-const query = 'hello';
-const languageCode = 'en-US';
+import apiai from 'apiai';
 
-// Instantiate a DialogFlow client.
-const dialogflow = require('dialogflow');
-const sessionClient = new dialogflow.SessionsClient();
+export default class Dialogflow  {
+  constructor(client_access_token) {
+    this.app = apiai(client_access_token);
 
-// Define session path
-const sessionPath = sessionClient.sessionPath(projectId, sessionId);
+    this.getIntent = this.getIntent.bind(this);
+  }
 
-// The text query request.
-const request = {
-  session: sessionPath,
-  queryInput: {
-    text: {
-      text: query,
-      languageCode: languageCode,
-    },
-  },
-};
+  getIntent(query) {
+    return new Promise((resolve, reject) => {
+      var request = this.app.textRequest(query, {
+          sessionId: '<unique session id>'
+      });
 
-// Send request and log result
-sessionClient
-  .detectIntent(request)
-  .then(responses => {
-    console.log('Detected intent');
-    const result = responses[0].queryResult;
-    console.log(`  Query: ${result.queryText}`);
-    console.log(`  Response: ${result.fulfillmentText}`);
-    if (result.intent) {
-      console.log(`  Intent: ${result.intent.displayName}`);
-    } else {
-      console.log(`  No intent matched.`);
-    }
-  })
-  .catch(err => {
-    console.error('ERROR:', err);
-  });
+      request.on('response', function(response) {
+          // console.log(response);
+          resolve(response.result.metadata.intentName);
+      });
+
+      request.on('error', function(error) {
+          console.error(error);
+          resolve(error);
+      });
+
+      request.end();
+    });
+  };
+}

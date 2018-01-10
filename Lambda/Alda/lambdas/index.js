@@ -2,9 +2,16 @@
 /* @flow */
 
 import request from "request";
+import Dialogflow from "../lib/dialogflow";
 
 require('dotenv').config(); // process.env.<WHATEVER>
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+const DIALOGFLOW_CLIENT_ACCESS_TOKEN = process.env.DIALOGFLOW_CLIENT_ACCESS_TOKEN;
+
+var d = new Dialogflow(DIALOGFLOW_CLIENT_ACCESS_TOKEN);
+d.getIntent('saldo').then((intent) => {
+  console.log(intent)
+});
 
 type HelloOptions = {
   name: string

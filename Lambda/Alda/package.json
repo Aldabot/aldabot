@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "dialogflow": "^0.1.0",
+    "apiai": "^4.0.3",
     "dotenv": "^4.0.0",
     "request": "^2.83.0"
   },
