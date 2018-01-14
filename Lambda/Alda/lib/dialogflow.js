@@ -14,7 +14,7 @@ export default class Dialogflow  {
   getIntent(query) {
     return new Promise((resolve, reject) => {
       var request = this.app.textRequest(query, {
-          sessionId: 'abc'
+          sessionId: this.sender_psid
       });
 
       console.log('DIALOGFLOW response');

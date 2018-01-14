@@ -1,7 +1,9 @@
 {
   "dependencies": {
     "apiai": "^4.0.3",
+    "bluebird": "^3.5.1",
     "dotenv": "^4.0.0",
+    "mysql2": "^1.5.1",
     "request": "^2.83.0"
   },
   "scripts": {

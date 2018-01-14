@@ -38,9 +38,7 @@ app.listen(process.env.PORT || 5000, () => console.log('webhook is listening'));
 
 app.post('/webhook', (req, res) => {
   console.log("call");
-  // Messenger message body
-  // const body = {"object":"page","entry":[{"id":"109017126525560","time":1515582777160,"messaging":[{"sender":{"id":"1705514732805822"},"recipient":{"id":"109017126525560"},"timestamp":1515576484638,"message":{"mid":"mid.$cAAA51ZR31vhnEKsrHlg32Xixeo7y","seq":111371,"text":"hola"}}]}]}
-
+  
   const event = {
     "body": JSON.stringify(req.body),
     "queryStringParameters": req.query,

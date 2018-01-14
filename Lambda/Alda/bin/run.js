@@ -1,13 +1,5 @@
-const args = process.argv;
-const requiredLambda = args[2].split(".");
-const lambdaModule = require(`../dist/${requiredLambda[0]}.js`);
-const lambda = lambdaModule[requiredLambda[1]];
-const options = JSON.parse(args[3]);
-
-console.log(process.argv);
-console.log(`requiredLambda: ${requiredLambda}`);
-console.log(`lambdaModule: ${lambdaModule}`);
-console.log(`lambda: ${lambda}`);
+const lambdaModule = require('../dist/index.js');
+const lambda = lambdaModule['handler'];
 
 function succeed(result) {
   console.log(result);
@@ -35,4 +27,9 @@ const context = {
   clientContext: null
 };
 
-lambda(options, context);
+// Messenger message body
+// const body = {"object":"page","entry":[{"id":"109017126525560","time":1515582777160,"messaging":[{"sender":{"id":"1705514732805822"},"recipient":{"id":"109017126525560"},"timestamp":1515576484638,"message":{"mid":"mid.$cAAA51ZR31vhnEKsrHlg32Xixeo7y","seq":111371,"text":"hola"}}]}]}
+
+
+
+lambda(event, context);

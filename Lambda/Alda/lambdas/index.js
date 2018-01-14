@@ -5,10 +5,31 @@ import request from 'request';
 import Dialogflow from '../lib/dialogflow';
 import Lambda from '../lib/lambda';
 import Facebook from '../lib/facebook';
-
+import Person from '../lib/person';
+import Intent from '../lib/intent';
+import mysql from 'mysql2';
+import bluebird from 'bluebird';
 require('dotenv').config(); // process.env.<WHATEVER>
+
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 const DIALOGFLOW_CLIENT_ACCESS_TOKEN = process.env.DIALOGFLOW_CLIENT_ACCESS_TOKEN;
+
+const connection = mysql.createConnection({
+  host     : process.env.RDS_HOST,
+  user     : process.env.RDS_USER,
+  password : process.env.RDS_PASSWORD,
+  database : process.env.RDS_DB,
+  Promise: bluebird
+});
+
+connection.connect(function(err) {
+  if (err) {
+    console.error('error connecting: ' + err.stack);
+    return;
+  }
+
+  console.log('connected as id ' + connection.threadId);
+});
 
 type HelloOptions = {
   name: string
@@ -16,14 +37,6 @@ type HelloOptions = {
 
 export function handler(event: HelloOptions, context: any, callback): void {
   console.info("START Lambda handler");
-  console.log(callback);
-  // callback(null, {
-  //   statusCode: 200,
-  //   headers: {
-  //       "x-custom-header" : "my custom header value"
-  //   },
-  //   body: 'jo'
-  // });
   console.info(event);
   // console.info(context);
   let httpMethod = event.httpMethod;
@@ -32,6 +45,8 @@ export function handler(event: HelloOptions, context: any, callback): void {
 
   const facebook = new Facebook(PAGE_ACCESS_TOKEN, body);
   const sender_psid = facebook.getSenderPSID();
+  console.log("PERSON");
+  const person = Person.create(connection, sender_psid);
   const dialogflow = new Dialogflow(DIALOGFLOW_CLIENT_ACCESS_TOKEN, sender_psid);
   const lambda = new Lambda(callback);
 
@@ -98,34 +113,6 @@ function messengerGET(queryStringParameters, callback) {
   respond(400, '', callback);
 }
 
-function messengerPOST(body, callback) {
-  console.log("messenger POST");
-  console.log(body);
-  // Checks this is an event from a page subscription
-  if (body.object === 'page') {
-    // Iterates over each entry - there may be multiple if batched
-    body.entry.forEach(function(entry) {
-
-      // Gets the body of the webhook event
-      let webhook_event = entry.messaging[0];
-      console.log(webhook_event)
-
-      // Get the sender PSID
-      let sender_psid = webhook_event.sender.id;
-      console.log('Sender PSID: ' + sender_psid);
-
-      if (webhook_event.message) {
-        handleMessage(sender_psid, webhook_event.message, callback);
-      } else if (webhook_event.postback) {
-        handlePostback(sender_psid, webhook_event.postback, callback);
-      }
-    })
-  } else {
-    // Returns a '404 Not Found' if event is not from a page subscription
-    respond(404, '', callback);
-  }
-}
-
 // Handles messages events
 function handleMessage(sender_psid, received_message, callback) {
 
@@ -183,33 +170,4 @@ function handlePostback(sender_psid, received_postback, callback) {
   }
 
   callSendAPI(sender_psid, response, callback);
-}
-
-// Sends response messages via the Send API
-function callSendAPI(sender_psid, response, callback) {
-  // Construct the message body
-  let request_body = {
-    "recipient": {
-      "id": sender_psid
-    },
-    "message" : response
-  }
-  console.log(PAGE_ACCESS_TOKEN);
-  console.log(request_body);
-
-  // Send the HTTP request to the Messenger Platform
-  request({
-    "uri": "https://graph.facebook.com/v2.6/me/messages",
-    "qs": { "access_token": PAGE_ACCESS_TOKEN },
-    "method": "POST",
-    "json": request_body
-  }, (err, res, body) => {
-    if (!err) {
-      console.log('message sent!')
-      respond(200, 'message sent!', callback);
-    } else {
-      console.error("Unable to send message:" + err);
-      respond(400, `Unable to send message: ${err}`, callback);
-    }
-  });
 }
