@@ -1,34 +1,27 @@
-
-/* @flow */
-
+require('dotenv').config(); // process.env.<WHATEVER>
 import request from 'request';
 import Dialogflow from '../lib/dialogflow';
 import Lambda from '../lib/lambda';
 import Facebook from '../lib/facebook';
 import Person from '../lib/person';
 import Intent from '../lib/intent';
-import mysql from 'mysql2';
-import bluebird from 'bluebird';
-require('dotenv').config(); // process.env.<WHATEVER>
+import Database from '../lib/database.js';
+import mysql from 'mysql';
+import Promise from 'bluebird';
+Promise.promisifyAll(require("mysql/lib/Connection").prototype);
+Promise.promisifyAll(require("mysql/lib/Pool").prototype);
+
+console.log("STARTING");
 
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 const DIALOGFLOW_CLIENT_ACCESS_TOKEN = process.env.DIALOGFLOW_CLIENT_ACCESS_TOKEN;
 
-const connection = mysql.createConnection({
-  host     : process.env.RDS_HOST,
-  user     : process.env.RDS_USER,
-  password : process.env.RDS_PASSWORD,
-  database : process.env.RDS_DB,
-  Promise: bluebird
-});
-
-connection.connect(function(err) {
-  if (err) {
-    console.error('error connecting: ' + err.stack);
-    return;
-  }
-
-  console.log('connected as id ' + connection.threadId);
+var pool = mysql.createPool({
+    connectionLimit: 20,
+    host     : process.env.RDS_HOST,
+    user     : process.env.RDS_USER,
+    password : process.env.RDS_PASSWORD,
+    database : process.env.RDS_DB,
 });
 
 type HelloOptions = {
@@ -36,19 +29,27 @@ type HelloOptions = {
 };
 
 export function handler(event: HelloOptions, context: any, callback): void {
-  console.info("START Lambda handler");
-  console.info(event);
+    context.callbackWaitsForEmptyEventLoop = false;
+    console.info("START Lambda handler");
+  // console.info(event);
   // console.info(context);
-  let httpMethod = event.httpMethod;
-  let queryStringParameters = event.queryStringParameters;
-  let body = JSON.parse(event.body);
+    let httpMethod = event.httpMethod;
+    let queryStringParameters = event.queryStringParameters;
+    let body = JSON.parse(event.body);
+    console.log(body);
+    const database = new Database(pool);
+    database.query().then((results, error) => {
+        console.log('juhu');
+        console.log(results);
+    });
 
-  const facebook = new Facebook(PAGE_ACCESS_TOKEN, body);
-  const sender_psid = facebook.getSenderPSID();
-  console.log("PERSON");
-  const person = Person.create(connection, sender_psid);
-  const dialogflow = new Dialogflow(DIALOGFLOW_CLIENT_ACCESS_TOKEN, sender_psid);
-  const lambda = new Lambda(callback);
+
+  // const facebook = new Facebook(PAGE_ACCESS_TOKEN, body);
+  // const sender_psid = facebook.getSenderPSID();
+  // console.log("PERSON");
+  // const person = Person.create(connection, sender_psid);
+  // const dialogflow = new Dialogflow(DIALOGFLOW_CLIENT_ACCESS_TOKEN, sender_psid);
+  // const lambda = new Lambda(callback);
 
   switch(httpMethod) {
     case "GET":
@@ -56,16 +57,14 @@ export function handler(event: HelloOptions, context: any, callback): void {
       break;
       // respond(200, `httpMethod: ${httpMethod}`, callback);
     case "POST":
-      let messageText = facebook.getMessageText();
-      dialogflow.getIntent(messageText).then((intent) => {
-        console.log('INTENT');
-        console.log(intent);
-        facebook.sendTextToMessenger(intent).then(() =>{
-          lambda.respond(200, '');
-        });
-      });
-
-      //lambda.respond(200, '');
+      // let messageText = facebook.getMessageText();
+      // dialogflow.getIntent(messageText).then((intent) => {
+      //   console.log('INTENT');
+      //   console.log(intent);
+      //   facebook.sendTextToMessenger(intent).then(() =>{
+      //     lambda.respond(200, '');
+      //   });
+      // });
       break;
     default:
       console.error(`Unsuported httpMethod: ${httpMethod}`);

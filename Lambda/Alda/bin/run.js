@@ -31,5 +31,37 @@ const context = {
 // const body = {"object":"page","entry":[{"id":"109017126525560","time":1515582777160,"messaging":[{"sender":{"id":"1705514732805822"},"recipient":{"id":"109017126525560"},"timestamp":1515576484638,"message":{"mid":"mid.$cAAA51ZR31vhnEKsrHlg32Xixeo7y","seq":111371,"text":"hola"}}]}]}
 
 
+const messengerBody = JSON.stringify({
+    "object":"page",
+    "entry":[
+        {
+            "id":"109017126525560",
+            "time":1515582777160,
+            "messaging":[
+                {
+                    "sender":{
+                        "id":"1705514732805822"
+                    },
+                    "recipient":{
+                        "id":"109017126525560"
+                    },
+                    "timestamp":1515576484638,
+                    "message":{
+                        "mid":"mid.$cAAA51ZR31vhnEKsrHlg32Xixeo7y",
+                        "seq":111371,
+                        "text":"hola"
+                    }
+                }
+            ]
+        }
+    ]
+});
+
+
+const event = {
+    httpMethod: "POST",
+    queryStringParameters: {},
+    body: messengerBody
+};
 
 lambda(event, context);

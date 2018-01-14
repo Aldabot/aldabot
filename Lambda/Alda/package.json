@@ -3,11 +3,12 @@
     "apiai": "^4.0.3",
     "bluebird": "^3.5.1",
     "dotenv": "^4.0.0",
-    "mysql2": "^1.5.1",
+    "mysql": "^2.15.0",
     "request": "^2.83.0"
   },
   "scripts": {
     "start": "webpack --watch",
+    "lambda": "node bin/run.js",
     "test": "mocha --compilers js:babel-core/register --recursive tests/",
     "deploy": "webpack && GLOBIGNORE=.:.. && cd ./dist && zip -r9 lambda.zip . && aws lambda update-function-code --function-name AldaV2 --zip-file fileb://lambda.zip && rm lambda.zip && cd ../"
   },
