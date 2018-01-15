@@ -83,7 +83,6 @@ export default class facebook {
         "message" : response
       }
       // console.log(PAGE_ACCESS_TOKEN);
-      console.log(request_body);
 
       // Send the HTTP request to the Messenger Platform
       request({

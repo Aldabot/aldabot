@@ -57,11 +57,15 @@ const messengerBody = JSON.stringify({
     ]
 });
 
-
 const event = {
     httpMethod: "POST",
     queryStringParameters: {},
     body: messengerBody
 };
 
-lambda(event, context);
+const callback = (noIdea, response) => {
+    console.log(JSON.stringify(response, null, 4));
+    process.exit();
+};
+
+lambda(event, context, callback);

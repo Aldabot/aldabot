@@ -1,19 +1,21 @@
 export default class Person {
-  constructor(connection, facebook_id) {
-    this.connection = connection;
-    this.facebook_id = facebook_id;
+    constructor(person) {
+        this.psid = person.psid;
 
-    this._initialize = this._initialize.bind(this);
-  }
+        this.logins = person.logins;
 
-  async _initialize() {
-    const [rows, fields] = await this.connection.execute('SELECT * FROM `person`');
-  }
+        this.getAccounts = this.getAccounts.bind(this);
+    }
 
-  static async create(connection, facebook_id) {
-    const o = new Person(connection, facebook_id);
-    await o._initialize();
-    return o;
-  }
-
+    getAccounts() {
+        let accountsArray = [];
+        for (var loginIndex in this.logins) {
+            var accounts = this.logins[loginIndex]['accounts'];
+            for(var accountIndex in accounts) {
+                var account = accounts[accountIndex];
+                accountsArray.push(account);
+            }
+        };
+        return accountsArray;
+    }
 }

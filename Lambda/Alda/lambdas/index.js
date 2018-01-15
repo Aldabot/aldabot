@@ -36,40 +36,33 @@ export function handler(event: HelloOptions, context: any, callback): void {
     let httpMethod = event.httpMethod;
     let queryStringParameters = event.queryStringParameters;
     let body = JSON.parse(event.body);
-    console.log(body);
-    const database = new Database(pool);
-    database.query().then((results, error) => {
-        console.log('juhu');
-        console.log(results);
-    });
 
-
-  // const facebook = new Facebook(PAGE_ACCESS_TOKEN, body);
-  // const sender_psid = facebook.getSenderPSID();
-  // console.log("PERSON");
-  // const person = Person.create(connection, sender_psid);
-  // const dialogflow = new Dialogflow(DIALOGFLOW_CLIENT_ACCESS_TOKEN, sender_psid);
-  // const lambda = new Lambda(callback);
-
-  switch(httpMethod) {
+    const facebook = new Facebook(PAGE_ACCESS_TOKEN, body);
+    const psid = facebook.getSenderPSID();
+    const dialogflow = new Dialogflow(DIALOGFLOW_CLIENT_ACCESS_TOKEN, psid);
+    const lambda = new Lambda(callback);
+    
+    switch(httpMethod) {
     case "GET":
-      messengerGET(queryStringParameters, callback);
-      break;
-      // respond(200, `httpMethod: ${httpMethod}`, callback);
+        messengerGET(queryStringParameters, callback);
+        break;
+        // respond(200, `httpMethod: ${httpMethod}`, callback);
     case "POST":
-      // let messageText = facebook.getMessageText();
-      // dialogflow.getIntent(messageText).then((intent) => {
-      //   console.log('INTENT');
-      //   console.log(intent);
-      //   facebook.sendTextToMessenger(intent).then(() =>{
-      //     lambda.respond(200, '');
-      //   });
-      // });
-      break;
+        let message = facebook.getMessageText();
+        const database = new Database(pool);
+        var promises = [];
+        promises.push(dialogflow.getIntent(message));
+        promises.push(database.getPersonClass(psid));
+        Promise.all(promises).then(([intentName, person]) => {
+            const intent = new Intent(intentName, person);
+            const response = intent.getResponse();
+            lambda.respond(200, response);
+        });
+        break;
     default:
-      console.error(`Unsuported httpMethod: ${httpMethod}`);
+        console.error(`Unsuported httpMethod: ${httpMethod}`);
       respond(403, `Unsuported httpMethod: ${httpMethod}`, callback);
-  }
+    }
 }
 
 function respond(responseCode, responseBody, callback) {
