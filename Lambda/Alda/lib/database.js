@@ -35,7 +35,7 @@ export default class Database {
     }
 
     getAccounts(login_id) {
-        const sql =  `SELECT id, name, balance, nature FROM saltedge_account WHERE login_id = ${login_id}`; 
+        const sql =  `SELECT id, name, balance, nature FROM saltedge_account WHERE login_id = ${login_id}`;
         return this.query(sql);
     }
 
@@ -80,5 +80,10 @@ export default class Database {
                 resolve(new Person(this.person));
             });
         });
+    }
+
+    saveSessionId(sessionId, psid) {
+        const sql = `INSERT INTO person (psid, session_id) VALUES ('${psid}', '${sessionId}') ON DUPLICATE KEY UPDATE session_id = '${sessionId}'`;
+        return this.query(sql);
     }
 }

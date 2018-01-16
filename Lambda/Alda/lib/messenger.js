@@ -21,10 +21,11 @@ export default class Messenger {
 
         this.webhook_event = body.entry[0].messaging[0];
         this.sender_psid = this.webhook_event.sender.id;
-        this.messageText = this.webhook_event.message.text;
-
-        this.messagesToSend = [];
-
+        if(this.webhook_event.message) {
+            this.messageText = this.webhook_event.message.text;
+            this.messagesToSend = [];
+        }
+        this.getEvent = this.getEvent.bind(this);
         this.getMessageText = this.getMessageText.bind(this);
         this._callSendAPI = this._callSendAPI.bind(this);
         this.sendAsync = this.sendAsync.bind(this);
@@ -38,6 +39,10 @@ export default class Messenger {
 
     getMessageText() {
         return this.messageText;
+    }
+
+    getEvent() {
+        return this.webhook_event;
     }
 
     addTextMessage(text) {

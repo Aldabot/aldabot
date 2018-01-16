@@ -59,24 +59,39 @@ export function handler(event: HelloOptions, context: any, callback): void {
         break;
         // respond(200, `httpMethod: ${httpMethod}`, callback);
     case "POST":
-        // const messenger = new Messenger(PAGE_ACCESS_TOKEN, body);
-        // const psid = messenger.getSenderPSID();
-        // const dialogflow = new Dialogflow(DIALOGFLOW_CLIENT_ACCESS_TOKEN, psid);
-        // const lambda = new Lambda(callback);
+        const event = messenger.getEvent();
+        const psid = messenger.getSenderPSID();
 
-        // let message = messenger.getMessageText();
-        // const database = new Database(pool);
-        // var promises = []
-        // promises.push(dialogflow.getIntent(message));
-        // promises.push(database.getPersonClass(psid));
-        // Promise.all(promises).then(([intentName, person]) => {
-        //     const intent = new Intent(intentName, person);
-        //     const response = intent.getResponse();
-        //     console.log(response);
-        //     return messenger.sendTextMessageAsync(response);
-        // }).then(() => {
-        //     lambda.respond(200, null);
-        // });
+        // console.log(JSON.stringify(event, null, 4));
+        if (event.message) {
+            const messenger = new Messenger(PAGE_ACCESS_TOKEN, body);
+            const dialogflow = new Dialogflow(DIALOGFLOW_CLIENT_ACCESS_TOKEN, psid);
+            const lambda = new Lambda(callback);
+
+            let message = messenger.getMessageText();
+            const database = new Database(pool);
+            var promises = []
+            promises.push(dialogflow.getIntent(message));
+            promises.push(database.getPersonClass(psid));
+            Promise.all(promises).then(([intentName, person]) => {
+                const intent = new Intent(intentName, person);
+                const response = intent.getResponse();
+                console.log(response);
+                return messenger.sendTextMessageAsync(response);
+            }).then(() => {
+                lambda.respond(200, null);
+            });
+        } else if (event.postback) {
+            // Postback
+        } else if (event.optin) {
+            const ref = event.optin.ref;
+            const database = new Database(pool);
+            database.saveSessionId(ref, psid).then(() => {
+                console.log('saved');
+            });
+        } else {
+            console.log("other event?");
+        }
         break;
     default:
         console.error(`Unsuported httpMethod: ${httpMethod}`);
