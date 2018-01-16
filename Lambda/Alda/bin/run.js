@@ -49,7 +49,7 @@ const messengerBody = JSON.stringify({
                     "message":{
                         "mid":"mid.$cAAA51ZR31vhnEKsrHlg32Xixeo7y",
                         "seq":111371,
-                        "text":"hola"
+                        "text":"saldo"
                     }
                 }
             ]

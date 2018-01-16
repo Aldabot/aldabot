@@ -2,7 +2,7 @@ require('dotenv').config(); // process.env.<WHATEVER>
 import request from 'request';
 import Dialogflow from '../lib/dialogflow';
 import Lambda from '../lib/lambda';
-import Facebook from '../lib/facebook';
+import Messenger from '../lib/messenger.js';
 import Person from '../lib/person';
 import Intent from '../lib/intent';
 import Database from '../lib/database.js';
@@ -37,27 +37,53 @@ export function handler(event: HelloOptions, context: any, callback): void {
     let queryStringParameters = event.queryStringParameters;
     let body = JSON.parse(event.body);
 
-    const facebook = new Facebook(PAGE_ACCESS_TOKEN, body);
-    const psid = facebook.getSenderPSID();
-    const dialogflow = new Dialogflow(DIALOGFLOW_CLIENT_ACCESS_TOKEN, psid);
-    const lambda = new Lambda(callback);
+    // test multiple messages
+    const messenger = new Messenger(PAGE_ACCESS_TOKEN, body);
+    // let testMessages = ['Nachricht 1', 'Nachricht 2'];
+    // messenger.sendMultipleTextMessagesAsync(testMessages).then(() => {
+    //     console.log('messages sent');
+    // });
+
+    messenger.addTextMessage('ok');
+    messenger.addTextMessage('ok2');
+    messenger.addTextMessage('ok3');
+
+    messenger.sendAsync().then(() => { console.log("messages sent") });
+
+    // messenger.sendQuickReply("quick maths", "ok").then(() => {
+    //     console.log('quick reply sent');
+    // });
+
+    // messenger.addButtonTemplate("Button", [messenger.urlButton("https://aldaweb.es", "Aldaweb")]);
+    // messenger.sendAsync().then(() => {
+    //     console.log('message sent');
     
+
+
     switch(httpMethod) {
     case "GET":
         messengerGET(queryStringParameters, callback);
         break;
         // respond(200, `httpMethod: ${httpMethod}`, callback);
     case "POST":
-        let message = facebook.getMessageText();
-        const database = new Database(pool);
-        var promises = [];
-        promises.push(dialogflow.getIntent(message));
-        promises.push(database.getPersonClass(psid));
-        Promise.all(promises).then(([intentName, person]) => {
-            const intent = new Intent(intentName, person);
-            const response = intent.getResponse();
-            lambda.respond(200, response);
-        });
+        // const messenger = new Messenger(PAGE_ACCESS_TOKEN, body);
+        // const psid = messenger.getSenderPSID();
+        // const dialogflow = new Dialogflow(DIALOGFLOW_CLIENT_ACCESS_TOKEN, psid);
+        // const lambda = new Lambda(callback);
+
+        // let message = messenger.getMessageText();
+        // const database = new Database(pool);
+        // var promises = []
+        // promises.push(dialogflow.getIntent(message));
+        // promises.push(database.getPersonClass(psid));
+        // Promise.all(promises).then(([intentName, person]) => {
+        //     const intent = new Intent(intentName, person);
+        //     const response = intent.getResponse();
+        //     console.log(response);
+        //     return messenger.sendTextMessageAsync(response);
+        // }).then(() => {
+        //     lambda.respond(200, null);
+        // });
         break;
     default:
         console.error(`Unsuported httpMethod: ${httpMethod}`);

@@ -2,9 +2,6 @@ var apiai = require('apiai');
 
 export default class Dialogflow  {
   constructor(client_access_token, sender_psid) {
-    console.log("client_access_token");
-    console.log(client_access_token);
-
     this.app = apiai(client_access_token);
 
     this.sender_psid = sender_psid;

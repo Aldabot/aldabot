@@ -35,7 +35,7 @@ export default class Database {
     }
 
     getAccounts(login_id) {
-        const sql =  `SELECT id, balance, nature FROM saltedge_account WHERE login_id = ${login_id}`; 
+        const sql =  `SELECT id, name, balance, nature FROM saltedge_account WHERE login_id = ${login_id}`; 
         return this.query(sql);
     }
 
