@@ -47,20 +47,22 @@ export default class Messenger {
         this.messagesToSend.push(message);
     }
 
-    sendQuickReply(text, quickReply) {
-        const response = {
-            "text": text,
-            "quick_replies": [
-                {
-                    "content_type": "text",
-                    "title": "Vamos a empezar",
-                    "payload": "lol"
-                }
-            ]
+    addQuickReply(text: string, quickReplies) {
+        const message = {
+            text,
+            quick_replies: quickReplies
         };
-        return this._callSendAPI(response);
+        this.messagesToSend.push(message);
+        console.log(JSON.stringify(this.messagesToSend, null, 4));
     }
 
+    quickReply(title, payload) {
+        return {
+            content_type: "text",
+            title,
+            payload
+        };
+    }
 
     urlButton(url: string, title: string): urlButton {
         return {

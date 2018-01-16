@@ -44,20 +44,23 @@ export function handler(event: HelloOptions, context: any, callback): void {
     //     console.log('messages sent');
     // });
 
-    messenger.addTextMessage('ok');
-    messenger.addTextMessage('ok2');
-    messenger.addTextMessage('ok3');
+    // messenger.addTextMessage('ok');
+    // messenger.addTextMessage('ok2');
+    // messenger.addTextMessage('ok3');
 
-    messenger.sendAsync().then(() => { console.log("messages sent") });
+    // messenger.sendAsync().then(() => { console.log("messages sent") });
 
     // messenger.sendQuickReply("quick maths", "ok").then(() => {
     //     console.log('quick reply sent');
     // });
 
     // messenger.addButtonTemplate("Button", [messenger.urlButton("https://aldaweb.es", "Aldaweb")]);
-    // messenger.sendAsync().then(() => {
-    //     console.log('message sent');
-    
+
+
+    messenger.addQuickReply('title', [messenger.quickReply("Start", "nothing")]);
+    messenger.sendAsync().then(() => {
+        console.log('message sent');
+    });
 
 
     switch(httpMethod) {
