@@ -73,8 +73,8 @@ export default class Messenger {
     }
 
     addButtonTemplate(text: string, buttons: Array<Button>): null {
-        const buttonTemplateAttachement = {
-            attachement: {
+        const message = {
+            attachment: {
                 type: "template",
                 payload: {
                     template_type: "button",
@@ -84,7 +84,8 @@ export default class Messenger {
             }
 
         };
-        this.messagesToSend.push(buttonTemplateAttachement);
+        console.log(JSON.stringify(message, null, 4));
+        this.messagesToSend.push(message);
     }
 
     sendAsync() {

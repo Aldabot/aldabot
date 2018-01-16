@@ -48,16 +48,17 @@ export function handler(event: HelloOptions, context: any, callback): void {
     // messenger.addTextMessage('ok2');
     // messenger.addTextMessage('ok3');
 
-    // messenger.sendAsync().then(() => { console.log("messages sent") });
+    // messenger.addQuickReply('title', [messenger.quickReply("Start", "nothing")]);
 
-    // messenger.sendQuickReply("quick maths", "ok").then(() => {
-    //     console.log('quick reply sent');
-    // });
+    // messenger.addButtonTemplate("Button", [messenger.urlButton("https://aldaweb.es", "Aldaweb"), messenger.urlButton("https://aldaweb.es", "Aldaweb")]);
 
-    // messenger.addButtonTemplate("Button", [messenger.urlButton("https://aldaweb.es", "Aldaweb")]);
+    messenger.addTextMessage('Hola, soy Alda. Estoy aquí para simplificar la administración de tu dinero.');
+    messenger.addTextMessage('Puedes pensar en mí como tu asistente personal.');
+    messenger.addQuickReply('Lo ayudaré a hacer un seguimiento de lo que está gastando, cómo está gastando y cómo puede hacerlo mejor.', [messenger.quickReply("Empecemos", "start")]);
 
+    messenger.addTextMessage('¡Guay! Para comenzar su viaje hacia una mejor administración del dinero, necesito vincularme con su banca en línea.');
+    messenger.addButtonTemplate("Sus detalles están protegidos por seguridad de nivel bancario. Están completamente protegidos y son 100% seguros.", [messenger.urlButton("https://aldabot.es", "Claro 🔒")]);
 
-    messenger.addQuickReply('title', [messenger.quickReply("Start", "nothing")]);
     messenger.sendAsync().then(() => {
         console.log('message sent');
     });
