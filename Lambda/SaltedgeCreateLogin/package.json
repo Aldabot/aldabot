@@ -1,0 +1,30 @@
+{
+  "dependencies": {
+    "apiai": "^4.0.3",
+    "axios": "^0.17.1",
+    "bluebird": "^3.5.1",
+    "dotenv": "^4.0.0",
+    "mysql": "^2.15.0"
+  },
+  "scripts": {
+    "start": "webpack --watch",
+    "runAlda": "node bin/run.js",
+    "test": "mocha --compilers js:babel-core/register --recursive tests/",
+    "deploy": "webpack && GLOBIGNORE=.:.. && cd ./dist && zip -r9 lambda.zip . && aws lambda update-function-code --function-name SaltedgeCreateLogin --zip-file fileb://lambda.zip && rm lambda.zip && cd ../"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-syntax-flow": "^6.18.0",
+    "babel-plugin-transform-flow-strip-types": "^6.22.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-flow": "^6.23.0",
+    "body-parser": "^1.18.2",
+    "copy-webpack-plugin": "^4.3.1",
+    "express": "^4.16.2",
+    "flow-bin": "^0.63.1",
+    "json-loader": "^0.5.7",
+    "mocha": "^4.1.0",
+    "webpack": "^3.10.0"
+  }
+}
