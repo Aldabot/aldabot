@@ -21,6 +21,7 @@
     "babel-preset-flow": "^6.23.0",
     "body-parser": "^1.18.2",
     "copy-webpack-plugin": "^4.3.1",
+    "cors": "^2.8.4",
     "express": "^4.16.2",
     "flow-bin": "^0.63.1",
     "json-loader": "^0.5.7",

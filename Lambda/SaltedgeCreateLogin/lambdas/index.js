@@ -8,7 +8,6 @@ Promise.promisifyAll(require("mysql/lib/Pool").prototype);
 dotenv.config();
 console.log("STARTING SALTEDGE_CREATE_CUSTOMER");
 
-console.log(process.env);
 var pool = mysql.createPool({
     connectionLimit: 20,
     host     : process.env.RDS_HOST,
@@ -26,27 +25,37 @@ export function handler(event: any, context: any, callback: any): void {
     let body = JSON.parse(event.body);
 
     // some setup
+    const responseBody = {
+        message: "Created Login"
+    };
+    const lambdaHeaders = {
+        "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+        "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+    };
     const lambdaResponse = {
         statusCode: 200,
-        headers: null,
-        body: null
+        headers: lambdaHeaders,
+        body: JSON.stringify(responseBody)
     };
-    const headers = {
+    const saltedgeHeaders = {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'Client-id': 'QTPsSIxhOxBxIRf3IKzWew',
         'Service-secret': 'b6aeHuRHbvQouDqS_zB-R0cdXzKdvbi3kLnkMYE6EcU'
     };
+
     var instance = axios.create({
         baseURL: 'https://www.saltedge.com/api/v3/',
         timeout: 10000,
-        headers
+        headers: saltedgeHeaders
     });
 
-    const {sessionId, username, password } = body;
-
+    const {sessionId, username, password, providerCode } = body;
+    console.log(JSON.stringify(body, null, 4));
+    console.log("IMPORTANT");
+    console.log(sessionId);
     pool.getConnectionAsync().then((connection) => {
-        console.log("connected!");
+        console.log(`connected!, ${sessionId}`);
         const sql = `SELECT customer_id FROM person WHERE session_id = '${sessionId}'`;
         return connection.queryAsync(sql);
     }).then((person) => {
@@ -56,13 +65,16 @@ export function handler(event: any, context: any, callback: any): void {
 	          "data": {
 		            "customer_id": customerId,
 		            "country_code": "ES",
-		            "provider_code": "sabadell_es",
+		            "provider_code": providerCode,
 		            "credentials": {
 			              "login": username,
-			              "password": password 
-		            }
+			              "password": password
+		            },
+                "daily_refresh": true
 	          }
         };
+
+        console.log(JSON.stringify(params, null, 4));
 
        return instance.post('/logins', params);
     }).then((response) => {
@@ -72,6 +84,7 @@ export function handler(event: any, context: any, callback: any): void {
     }).catch((error) => {
         console.log(error);
         lambdaResponse.statusCode = 400;
+        lambdaResponse.body = JSON.stringify(error);
         callback(null, lambdaResponse);
     });
 }

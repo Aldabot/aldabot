@@ -1,16 +1,18 @@
 {
   "dependencies": {
     "apiai": "^4.0.3",
+    "axios": "^0.17.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "bluebird": "^3.5.1",
     "dotenv": "^4.0.0",
     "mysql": "^2.15.0",
     "request": "^2.83.0"
   },
   "scripts": {
-      "start": "webpack --watch",
-      "runAlda": "node bin/run.js",
-      "test": "mocha --compilers js:babel-core/register --recursive tests/",
-      "deploy": "webpack && GLOBIGNORE=.:.. && cd ./dist && zip -r9 lambda.zip . && aws lambda update-function-code --function-name AldaV2 --zip-file fileb://lambda.zip && rm lambda.zip && cd ../"
+    "start": "webpack --watch",
+    "runAlda": "node bin/run.js",
+    "test": "mocha --compilers js:babel-core/register --recursive tests/",
+    "deploy": "webpack && GLOBIGNORE=.:.. && cd ./dist && zip -r9 lambda.zip . && aws lambda update-function-code --function-name AldaV2 --zip-file fileb://lambda.zip && rm lambda.zip && cd ../"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",

@@ -30,6 +30,7 @@ const context = {
 const messengerBody = JSON.stringify({
     sessionId: '38269b29-4334-49ad-90fc-e0d1dfb45cef',
     username: 'y4310687h',
+    providerCode: 'sabadell_es',
     password: '2063'
 });
 

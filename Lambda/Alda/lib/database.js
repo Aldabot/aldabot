@@ -1,6 +1,51 @@
 import Person from './person';
 import Promise from 'bluebird';
 
+const getConnection = (pool) => {
+    return pool.getConnectionAsync().disposer((connection) => {
+        connection.release();
+    });
+};
+
+const query = (pool, sql) => {
+    return pool.getConnectionAsync().then((connection) => {
+        return connection.queryAsync(sql);
+    });
+};
+
+const escapedQuery = (pool, sql, values) => {
+    return Promise.using(getConnection(pool), (connection) => {
+        console.log(sql);
+        console.log(values);
+        return connection.queryAsync(sql, values);
+    });
+};
+
+export const createPerson = (pool, dbPerson) => {
+    const sql = `INSERT INTO person SET ?`;
+    return escapedQuery(pool, sql, dbPerson);
+};
+
+export const retrievePerson = (pool, psid) => {
+    const sql = `SELECT * FROM person WHERE psid = '${psid}'`;
+    return query(pool, sql);
+};
+
+export const updatePerson = (pool, dbPerson) => {
+    if (!dbPerson.psid) { throw new Error("UpdatePerson needs a PSID"); }
+
+    return retrievePerson(pool, dbPerson.psid).then((result) => {
+        const retrievedPerson = result[0];
+        const mergedPerson = { ...retrievedPerson, ...dbPerson }; // overwrite all given person values
+        const personValues = Object.values(mergedPerson); // JS object values -> array
+        console.log('person VALUES');
+        console.log(personValues);
+
+        const sql = 'UPDATE person SET customer_id = ?, session_id = ? WHERE psid = ?';
+        return escapedQuery(pool, sql, personValues);
+    });
+};
+
 export default class Database {
     constructor(pool) {
         this.pool = pool;

@@ -4,7 +4,8 @@ const
 request = require('request'),
 express = require('express'),
 bodyParser = require('body-parser'),
-app = express().use(bodyParser.json());
+cors = require('cors'),
+app = express().use(bodyParser.json(), cors());
 
 const lambdaModule = require('../dist/index.js');
 const lambda = lambdaModule['handler'];
@@ -57,6 +58,7 @@ app.post('/webhook', (req, res) => {
 })
 
 app.get('/webhook', (req, res) => {
+    console.log('GET');
     // curl -X GET "https://9f532725.ngrok.io/webhook?hub.verify_token=aldaHURN&hub.challenge=CHALLENGE_ACCEPTED&hub.mode=subscribe"
     let VERIFY_TOKEN = "aldaHURN";
 
