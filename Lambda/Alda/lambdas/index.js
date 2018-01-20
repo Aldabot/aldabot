@@ -25,14 +25,6 @@ var pool = mysql.createPool({
     database : process.env.RDS_DB
 });
 
-pool.on('connection', function (connection) {
-    console.log('NEW CONNECTION');
-});
-
-pool.on('release', () => {
-    console.log('collection released');
-});
-
 export function handler(event: HelloOptions, context: any, callback): void {
     context.callbackWaitsForEmptyEventLoop = false;
     console.info("START Lambda handler");
@@ -43,9 +35,26 @@ export function handler(event: HelloOptions, context: any, callback): void {
     let body = JSON.parse(event.body);
 
     const psid = '1234';
-    const dbPerson = { psid };
-    createPerson(pool, dbPerson).then(() => {
-        console.log('person created');
+    const dbPerson = { psid, customer_id: '5', session_id: '23' };
+    // createPerson(pool, dbPerson).then(() => {
+    //     console.log('person created');
+    // });
+
+    // createSaltedgeCustomer(psid).then((result) => {
+    //     console.log('Saltedge: created customer');
+    //     console.log(result.data);
+    //     const dbPerson = {
+    //         psid: result.data.data.identifier,
+    //         customer_id: result.data.data.id
+    //     };
+    //     return updatePerson(pool, dbPerson);
+    // }).then(() => {
+    updatePerson(pool, dbPerson).then(() => {
+        console.info('updated Person');
+    }).catch((error) => {
+        console.error(error.code);
+        console.log(error);
+        console.log('omg error');
     });
 
     // switch(httpMethod) {

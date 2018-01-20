@@ -7,15 +7,8 @@ const getConnection = (pool) => {
     });
 };
 
-const query = (pool, sql) => {
-    return pool.getConnectionAsync().then((connection) => {
-        return connection.queryAsync(sql);
-    });
-};
-
-const escapedQuery = (pool, sql, values) => {
+const query = (pool, sql, values) => {
     return Promise.using(getConnection(pool), (connection) => {
-        console.log(sql);
         console.log(values);
         return connection.queryAsync(sql, values);
     });
@@ -23,26 +16,24 @@ const escapedQuery = (pool, sql, values) => {
 
 export const createPerson = (pool, dbPerson) => {
     const sql = `INSERT INTO person SET ?`;
-    return escapedQuery(pool, sql, dbPerson);
+    return query(pool, sql, dbPerson);
 };
 
 export const retrievePerson = (pool, psid) => {
-    const sql = `SELECT * FROM person WHERE psid = '${psid}'`;
-    return query(pool, sql);
+    const sql = `SELECT * FROM person WHERE psid = ?`;
+    return query(pool, sql, [psid]).then((result) => {
+        return result[0];
+    });
 };
 
 export const updatePerson = (pool, dbPerson) => {
     if (!dbPerson.psid) { throw new Error("UpdatePerson needs a PSID"); }
 
-    return retrievePerson(pool, dbPerson.psid).then((result) => {
-        const retrievedPerson = result[0];
+    return retrievePerson(pool, dbPerson.psid).then((retrievedPerson) => {
         const mergedPerson = { ...retrievedPerson, ...dbPerson }; // overwrite all given person values
-        const personValues = Object.values(mergedPerson); // JS object values -> array
-        console.log('person VALUES');
-        console.log(personValues);
-
-        const sql = 'UPDATE person SET customer_id = ?, session_id = ? WHERE psid = ?';
-        return escapedQuery(pool, sql, personValues);
+        const values = [mergedPerson, mergedPerson.psid];
+        const sql = 'UPDATE person SET ? WHERE psid = ?';
+        return query(pool, sql, values);
     });
 };
 
