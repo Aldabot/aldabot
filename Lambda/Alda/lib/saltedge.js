@@ -19,5 +19,9 @@ export const createSaltedgeCustomer = (identifier) => {
             identifier
         }
     };
-    return instance.post('/customers', params);
+    return instance.post('/customers', params).then((result) => {
+        return result.data.data;
+    }).catch((error) => {
+        throw error.response.data;
+    });
 };

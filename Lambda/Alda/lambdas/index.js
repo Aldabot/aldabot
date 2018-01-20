@@ -25,6 +25,12 @@ var pool = mysql.createPool({
     database : process.env.RDS_DB
 });
 
+function logError(error) {
+    // only logs error code from RDS or Saltedge
+    if (error.code) { console.error(`Error RDS: ${error.code}`); }; // RDS
+    if (error.error_class) { console.error(`Error Saltedge: ${error.error_class}`); }; // Saltedge
+};
+
 export function handler(event: HelloOptions, context: any, callback): void {
     context.callbackWaitsForEmptyEventLoop = false;
     console.info("START Lambda handler");
@@ -35,26 +41,11 @@ export function handler(event: HelloOptions, context: any, callback): void {
     let body = JSON.parse(event.body);
 
     const psid = '1234';
-    const dbPerson = { psid, customer_id: '5', session_id: '23' };
-    // createPerson(pool, dbPerson).then(() => {
-    //     console.log('person created');
-    // });
-
-    // createSaltedgeCustomer(psid).then((result) => {
-    //     console.log('Saltedge: created customer');
-    //     console.log(result.data);
-    //     const dbPerson = {
-    //         psid: result.data.data.identifier,
-    //         customer_id: result.data.data.id
-    //     };
-    //     return updatePerson(pool, dbPerson);
-    // }).then(() => {
-    updatePerson(pool, dbPerson).then(() => {
-        console.info('updated Person');
+    createSaltedgeCustomer(psid).then((customer) => {
+        const dbPerson = { psid: customer.identifier, id: customer_id };
+        return updatePerson(pool, dbPerson);
     }).catch((error) => {
-        console.error(error.code);
-        console.log(error);
-        console.log('omg error');
+        logError(error);
     });
 
     // switch(httpMethod) {
