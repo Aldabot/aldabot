@@ -56,7 +56,7 @@ export function handler(event: any, context: any, callback: any): void {
     console.log(sessionId);
     pool.getConnectionAsync().then((connection) => {
         console.log(`connected!, ${sessionId}`);
-        const sql = `SELECT customer_id FROM person WHERE session_id = '${sessionId}'`;
+        const sql = `SELECT customer_id FROM persons WHERE session_id = '${sessionId}'`;
         return connection.queryAsync(sql);
     }).then((person) => {
         const customerId = person[0].customer_id;

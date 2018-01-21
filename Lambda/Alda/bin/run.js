@@ -30,33 +30,58 @@ const context = {
 // Messenger message body
 // const body = {"object":"page","entry":[{"id":"109017126525560","time":1515582777160,"messaging":[{"sender":{"id":"1705514732805822"},"recipient":{"id":"109017126525560"},"timestamp":1515576484638,"message":{"mid":"mid.$cAAA51ZR31vhnEKsrHlg32Xixeo7y","seq":111371,"text":"hola"}}]}]}
 
+function textMessage(text) {
+    return  {
+        "mid":"mid.$cAAA51ZR31vhnEKsrHlg32Xixeo7y",
+        text
+    };
+}
 
-const messengerBody = JSON.stringify({
-    "object":"page",
-    "entry":[
-        {
-            "id":"109017126525560",
-            "time":1515582777160,
-            "messaging":[
-                {
-                    "sender":{
-                        "id":"1705514732805822"
-                    },
-                    "recipient":{
-                        "id":"109017126525560"
-                    },
-                    "timestamp":1515576484638,
-                    "message":{
-                        "mid":"mid.$cAAA51ZR31vhnEKsrHlg32Xixeo7y",
-                        "seq":111371,
-                        "text":"saldo"
-                    }
-                }
-            ]
+function quickReply(text, payload) {
+    return {
+        "mid":"mid.$cAAA51ZR31vhnEKsrHlg32Xixeo7y",
+        text,
+        quick_reply: {
+            payload
         }
-    ]
-});
+    };
+}
 
+function webhookEvent(eventType, text, payload) {
+    var eventFormat = {
+        "object":"page",
+        "entry":[
+            {
+                "id":"109017126525560",
+                "time":1515582777160,
+                "messaging":[
+                    {
+                        "sender":{
+                            "id":"1705514732805822"
+                        },
+                        "recipient":{
+                            "id":"109017126525560"
+                        },
+                        "timestamp":1515576484638
+                    }
+                ]
+            }
+        ]
+    };
+    switch(eventType) {
+    case "messages":
+        eventFormat.entry[0].messaging[0].message = textMessage(text);
+    case "quickReply":
+        eventFormat.entry[0].messaging[0].message = quickReply(text, payload);
+    };
+
+    return eventFormat;
+};
+
+
+
+const messengerBody = JSON.stringify(webhookEvent("quickReply", "Empecemos", "START_LOGIN"), null, 4);
+console.log(messengerBody);
 const event = {
     httpMethod: "POST",
     queryStringParameters: {},

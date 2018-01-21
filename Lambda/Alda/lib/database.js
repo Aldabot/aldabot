@@ -15,12 +15,12 @@ const query = (pool, sql, values) => {
 };
 
 export const createPerson = (pool, dbPerson) => {
-    const sql = `INSERT INTO person SET ?`;
+    const sql = `INSERT INTO persons SET ?`;
     return query(pool, sql, dbPerson);
 };
 
 export const retrievePerson = (pool, psid) => {
-    const sql = `SELECT * FROM person WHERE psid = ?`;
+    const sql = `SELECT * FROM persons WHERE psid = ?`;
     return query(pool, sql, [psid]).then((result) => {
         return result[0];
     });
@@ -32,9 +32,14 @@ export const updatePerson = (pool, dbPerson) => {
     return retrievePerson(pool, dbPerson.psid).then((retrievedPerson) => {
         const mergedPerson = { ...retrievedPerson, ...dbPerson }; // overwrite all given person values
         const values = [mergedPerson, mergedPerson.psid];
-        const sql = 'UPDATE person SET ? WHERE psid = ?';
+        const sql = 'UPDATE persons SET ? WHERE psid = ?';
         return query(pool, sql, values);
     });
+};
+
+export const createSaltedgeCustomer = (pool, saltedgeCustomer) => {
+    const sql = "INSERT INTO saltedge_customers SET ?";
+    return query(pool, sql, saltedgeCustomer);
 };
 
 export default class Database {
