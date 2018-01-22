@@ -15,6 +15,16 @@ var pool = mysql.createPool({
     password : process.env.RDS_PASSWORD,
     database : process.env.RDS_DB
 });
+const getConnection = (pool) => {
+    return pool.getConnectionAsync().disposer((connection) => {
+        connection.release();
+    });
+};
+const query = (pool, sql, values) => {
+    return Promise.using(getConnection(pool), (connection) => {
+        return connection.queryAsync(sql, values);
+    });
+};
 
 export function handler(event: any, context: any, callback: any): void {
     context.callbackWaitsForEmptyEventLoop = false;
@@ -52,13 +62,8 @@ export function handler(event: any, context: any, callback: any): void {
 
     const {sessionId, username, password, providerCode } = body;
     console.log(JSON.stringify(body, null, 4));
-    console.log("IMPORTANT");
-    console.log(sessionId);
-    pool.getConnectionAsync().then((connection) => {
-        console.log(`connected!, ${sessionId}`);
-        const sql = `SELECT customer_id FROM persons WHERE session_id = '${sessionId}'`;
-        return connection.queryAsync(sql);
-    }).then((person) => {
+    const sql = `SELECT customer_id FROM persons WHERE session_id = ?`;
+    query(pool, sql, [sessionId]).then((person) => {
         const customerId = person[0].customer_id;
         console.log(`customerId: ${customerId}`);
         const params = {
@@ -82,9 +87,21 @@ export function handler(event: any, context: any, callback: any): void {
         console.log(`loginId: ${loginId}`);
         callback(null, lambdaResponse);
     }).catch((error) => {
-        console.log(error);
-        lambdaResponse.statusCode = 400;
-        lambdaResponse.body = JSON.stringify(error);
+        console.info('Something terrible happened');
+        console.log(error.response);
+        let statusCode = 500;
+        let errorCode = 'unkown';
+        if(error.response.data.error_class) {
+            errorCode = error.response.data.error_class;
+            switch(errorCode) {
+            case "LoginDuplicated":
+                statusCode = 403;
+            }
+        }
+        console.error(`StatusCode: ${statusCode}`);
+        console.error(`ErrorCode: ${errorCode}`);
+        lambdaResponse.statusCode = statusCode;
+        lambdaResponse.body = errorCode;
         callback(null, lambdaResponse);
     });
 }
