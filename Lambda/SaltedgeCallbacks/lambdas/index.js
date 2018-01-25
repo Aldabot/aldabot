@@ -14,7 +14,7 @@ Promise.promisifyAll(require("mysql/lib/Pool").prototype);
 console.log("STARTING");
 
 var pool = mysql.createPool({
-    connectionLimit: 20,
+    connectionLimit: 10,
     host     : process.env.RDS_HOST,
     user     : process.env.RDS_USER,
     password : process.env.RDS_PASSWORD,
@@ -62,17 +62,17 @@ export function handler(event: any, context: any, callback): void {
             promises.push(saltedge.getTransactions(loginId));
             return Promise.all(promises);
         }).then(([accounts, transactions]) => {
-                var promises = [];
+            var promises = [];
 
-                const dbLogin = {
-                    id: accounts[0].login_id,
-                    customer_id: customerId
-                };
-                promises.push(replaceLogin(pool, dbLogin));
+            const dbLogin = {
+                id: accounts[0].login_id,
+                customer_id: customerId
+            };
+            promises.push(replaceLogin(pool, dbLogin));
 
-                promises.push(accounts);
-                promises.push(transactions);
-                return Promise.all(promises);
+            promises.push(accounts);
+            promises.push(transactions);
+            return Promise.all(promises);
         }).then(([loginResult, accounts, transactions]) => {
             let promises = [];
             for (let account of accounts) {

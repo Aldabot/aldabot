@@ -71,8 +71,10 @@ function webhookEvent(eventType, text, payload) {
     switch(eventType) {
     case "messages":
         eventFormat.entry[0].messaging[0].message = textMessage(text);
+        break;
     case "quickReply":
         eventFormat.entry[0].messaging[0].message = quickReply(text, payload);
+        break;
     };
 
     return eventFormat;
@@ -80,7 +82,8 @@ function webhookEvent(eventType, text, payload) {
 
 
 
-const messengerBody = JSON.stringify(webhookEvent("quickReply", "Empecemos", "START_LOGIN"), null, 4);
+const messengerBody = JSON.stringify(webhookEvent("messages", "saldo"), null, 4);
+// const messengerBody = JSON.stringify(webhookEvent("quickReply", "Empecemos", "START_LOGIN"), null, 4);
 console.log(messengerBody);
 const event = {
     httpMethod: "POST",

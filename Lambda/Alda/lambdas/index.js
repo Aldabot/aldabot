@@ -1,26 +1,29 @@
 require('dotenv').config(); // process.env.<WHATEVER>
 import request from 'request';
-import Dialogflow from '../lib/dialogflow';
+import {
+    getIntent
+} from '../lib/dialogflow';
 import {
     respondOK,
     respondError
 } from '../lib/lambda';
 import {
-    sendTextMessage,
-    sendTextQuickReplies,
-    sendWebUrlButtons
+    respondTextMessage,
+    getMessageText
 } from '../lib/messenger.js';
 import {
     sendWelcomeMessages,
     sendFirstLoginMessages
 } from '../lib/predefinedMessages.js';
-import { eventType } from '../lib/messenger/webhookEvents.js';
-import Person from '../lib/person';
-import Intent from '../lib/intent';
+import {
+    eventType,
+    respondToPostback
+} from '../lib/messenger/webhookEvents.js';
 import {
     createPerson,
     retrievePerson,
     updatePerson,
+    retrieveAccounts,
 } from '../lib/database.js';
 import mysql from 'mysql';
 import Promise from 'bluebird';
@@ -28,15 +31,15 @@ import {
     createCustomer,
     deleteCustomer
 } from '../lib/saltedge.js';
-Promise.promisifyAll(require("mysql/lib/Connection").prototype);
-Promise.promisifyAll(require("mysql/lib/Pool").prototype);
+import {
+    respondIntent
+} from '../lib/intents.js';
 
 console.log("STARTING");
 
-const DIALOGFLOW_CLIENT_ACCESS_TOKEN = process.env.DIALOGFLOW_CLIENT_ACCESS_TOKEN;
 
 var pool = mysql.createPool({
-    connectionLimit: 20,
+    connectionLimit: 10,
     host     : process.env.RDS_HOST,
     user     : process.env.RDS_USER,
     password : process.env.RDS_PASSWORD,
@@ -81,7 +84,16 @@ export function handler(event, context: any, callback): void {
     case "POST":
         switch(eventType(state.messenger.event)) {
         case "MESSAGE":
-            respondOK(callback);
+            getIntent(state.messenger.psid, getMessageText(state.messenger.event)).then((intent) => {
+                return respondIntent(pool, state.messenger.psid, intent);
+            }).then(() => {
+                respondOK(callback);
+            }).catch((error) => {
+                console.log(error);
+                return respondTextMessage(state.messenger.psid, "Uups, algo ha ido mal.").then(() => {
+                    respondOK(callback);
+                });
+            });
             break;
         case "QUICK_REPLY":
             createCustomer(state.messenger.psid).then((response) => {
@@ -108,18 +120,12 @@ export function handler(event, context: any, callback): void {
             });
             break;
         case "POSTBACK":
-            createPerson(pool, {psid: state.messenger.psid}).then(() => {
-                console.info("New person created");
+            respondToPostback(pool, state.messenger.event, callback).then(() => {
+                console.log('ok');
+                respondOK(callback);
             }).catch((error) => {
-                if(error.code == "ER_DUP_ENTRY") {
-                   console.error("MySQL: duplicated entry!");
-                } else {
-                    console.error(`Error: while creating new Person: ${error.code}`);
-                }
-            }).finally(() => {
-                return sendWelcomeMessages(state.messenger.psid).then(() => {
-                    respondOK(callback);
-                });
+                console.log(error);
+                respondTextMessage(state.messenger.psid, 'Ups algo ha ido mal.');
             });
             break;
         case "OPTIN":
@@ -140,15 +146,6 @@ export function handler(event, context: any, callback): void {
             console.error('Error: Facebook webhook event not defined!');
             respondError(callback);
         }
-        // if (state.messenger.event.message) {
-    //         } else {
-    //             // const dialogflow = new Dialogflow(DIALOGFLOW_CLIENT_ACCESS_TOKEN, psid);
-    //             // let message = messenger.getMessageText();
-    //             // const database = new Database(pool);
-    //             // var promises = [];
-    //             // promises.push(dialogflow.getIntent(message));
-    //             // promises.push(database.getPersonClass(psid));
-    //             // Promise.all(promises).then(([intentName, person]) => {
     //             //     const intent = new Intent(intentName, person);
     //             //     const response = intent.getResponse();
     //             //     messenger.addTextMessage(response);
@@ -158,11 +155,6 @@ export function handler(event, context: any, callback): void {
     //             // });
     //             lambda.respond(200, null);
     //         }
-        // } else if (state.messenger.event.postback) {
-    //     } else if (event.optin) {
-    //     } else {
-    //         console.log("other event?");
-        // }
         break;
     default:
         console.error(`Unsuported httpMethod: ${httpMethod}`);

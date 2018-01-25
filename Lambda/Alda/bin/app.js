@@ -11,7 +11,7 @@ const lambda = lambdaModule['handler'];
 
 // fake lambda context
 function succeed(result) {
-    console.log(result);
+    //console.log(result);
     process.exit(0);
 }
 function fail(error) {
@@ -37,8 +37,6 @@ const context = {
 app.listen(process.env.PORT || 5000, () => console.log('webhook is listening'));
 
 app.post('/webhook', (req, res) => {
-    console.log("call");
-
     const event = {
         "body": JSON.stringify(req.body),
         "queryStringParameters": req.query,

@@ -9,7 +9,7 @@ dotenv.config();
 console.log("STARTING SALTEDGE_CREATE_CUSTOMER");
 
 var pool = mysql.createPool({
-    connectionLimit: 20,
+    connectionLimit: 10,
     host     : process.env.RDS_HOST,
     user     : process.env.RDS_USER,
     password : process.env.RDS_PASSWORD,

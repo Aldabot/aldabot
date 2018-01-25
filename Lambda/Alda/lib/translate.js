@@ -1,25 +1,22 @@
-export default class Tranlsate {
-    constructor() {
-        this.language = 'sp';
-        this.spDictionary = {
-            'account': 'Cuenta',
-            'bonus': 'Bonificación',
-            'card': 'Tarjeta',
-            'checking': 'Cuenta',
-            'credit_card': 'Tarjeta',
-            'debit_card': 'Tarjeta',
-            'ewallet': 'Billetera',
-            'insurance': 'Seguro',
-            'investment': 'Inversión',
-            'mortgage': 'Hipoteca',
-            'savings': 'Ahorros',
-            'loan': 'Préstamo'
-        };
+const spDictionary = {
+    'account': 'Cuenta',
+    'bonus': 'Bonificación',
+    'card': 'Tarjeta',
+    'checking': 'Cuenta',
+    'credit_card': 'Tarjeta',
+    'debit_card': 'Tarjeta',
+    'ewallet': 'Billetera',
+    'insurance': 'Seguro',
+    'investment': 'Inversión',
+    'mortgage': 'Hipoteca',
+    'savings': 'Ahorros',
+    'loan': 'Préstamo'
+};
 
-        this.getTranslation = this.getTranslation.bind(this);
+export const translateToSp = (word) => {
+    if(spDictionary[word]) {
+        return spDictionary[word];
+    } else {
+        return word;
     }
-
-    getTranslation(word) {
-        return this.spDictionary[word];
-    }
-}
+};
