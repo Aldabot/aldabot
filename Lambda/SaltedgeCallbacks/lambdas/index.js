@@ -2,7 +2,12 @@ require('dotenv').config(); // process.env.<WHATEVER>
 import mysql from 'mysql';
 import Promise from 'bluebird';
 import * as saltedge from '../lib/saltedge.js';
-import * as db from '../lib/database.js';
+import {
+    replaceCustomer,
+    replaceLogin,
+    replaceAccount,
+    replaceTransaction
+} from '../lib/database.js';
 Promise.promisifyAll(require("mysql/lib/Connection").prototype);
 Promise.promisifyAll(require("mysql/lib/Pool").prototype);
 
@@ -47,21 +52,27 @@ export function handler(event: any, context: any, callback): void {
         const customerId = data.customer_id;
         const loginId = data.login_id;
 
-        let promises = [];
-        promises.push(saltedge.getAccounts(loginId));
-        promises.push(saltedge.getTransactions(loginId));
-        Promise.all(promises).then(([accounts, transactions]) => {
-            var promises = [];
 
-            const dbLogin = {
-                id: accounts[0].login_id,
-                customer_id: customerId
-            };
-            promises.push(db.replaceLogin(pool, dbLogin));
-
-            promises.push(accounts);
-            promises.push(transactions);
+        const dbCustomer = {
+            id: customerId
+        };
+        replaceCustomer(pool, dbCustomer).then(() => {
+            let promises = [];
+            promises.push(saltedge.getAccounts(loginId));
+            promises.push(saltedge.getTransactions(loginId));
             return Promise.all(promises);
+        }).then(([accounts, transactions]) => {
+                var promises = [];
+
+                const dbLogin = {
+                    id: accounts[0].login_id,
+                    customer_id: customerId
+                };
+                promises.push(replaceLogin(pool, dbLogin));
+
+                promises.push(accounts);
+                promises.push(transactions);
+                return Promise.all(promises);
         }).then(([loginResult, accounts, transactions]) => {
             let promises = [];
             for (let account of accounts) {
@@ -69,7 +80,7 @@ export function handler(event: any, context: any, callback): void {
                 delete(account.created_at);
                 delete(account.updated_at);
 
-                promises.push(db.replaceAccount(pool, account));
+                promises.push(replaceAccount(pool, account));
             }
             promises.push(transactions);
             return Promise.all(promises);
@@ -78,7 +89,7 @@ export function handler(event: any, context: any, callback): void {
             let promises = [];
             for (let transaction of transactions) {
                 delete(transaction.extra);
-                promises.push(db.replaceTransaction(pool, transaction));
+                promises.push(replaceTransaction(pool, transaction));
             }
             return Promise.all(promises);
         }).then(() => {

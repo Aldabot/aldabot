@@ -60,6 +60,7 @@ export function handler(event: any, context: any, callback: any): void {
         headers: saltedgeHeaders
     });
 
+    console.log(body);
     const {sessionId, username, password, providerCode } = body;
     console.log(JSON.stringify(body, null, 4));
     const sql = `SELECT customer_id FROM persons WHERE session_id = ?`;
@@ -88,6 +89,7 @@ export function handler(event: any, context: any, callback: any): void {
         callback(null, lambdaResponse);
     }).catch((error) => {
         console.info('Something terrible happened');
+        console.log(error);
         console.log(error.response);
         let statusCode = 500;
         let errorCode = 'unkown';

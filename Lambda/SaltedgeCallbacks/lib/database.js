@@ -17,6 +17,11 @@ const query = (pool, sql, values) => {
 // SALTEDGE
 ////////////////////////////////////////////////////////////
 
+export const replaceCustomer = (pool, dbCustomer) => {
+    const sql = `REPLACE INTO saltedge_customers SET ?`;
+    return query(pool, sql, dbCustomer);
+}
+
 export const replaceLogin = (pool, dbLogin) => {
     const sql = `REPLACE INTO saltedge_logins SET ?`;
     return query(pool, sql, dbLogin);

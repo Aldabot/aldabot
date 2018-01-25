@@ -41,6 +41,10 @@ export const createSaltedgeCustomer = (pool, saltedgeCustomer) => {
     const sql = "INSERT INTO saltedge_customers SET ?";
     return query(pool, sql, saltedgeCustomer);
 };
+export const deleteSaltedgeCustomer = (pool, customerId) => {
+    const sql = "DELETE FROM saltedge_customers WHERE id = ?";
+    return query(pool, sql, [customerId]);
+};
 
 export default class Database {
     constructor(pool) {

@@ -1,18 +1,33 @@
 require('dotenv').config(); // process.env.<WHATEVER>
 import request from 'request';
 import Dialogflow from '../lib/dialogflow';
-import { respondOK } from '../lib/lambda';
+import {
+    respondOK,
+    respondError
+} from '../lib/lambda';
 import {
     sendTextMessage,
     sendTextQuickReplies,
     sendWebUrlButtons
 } from '../lib/messenger.js';
+import {
+    sendWelcomeMessages,
+    sendFirstLoginMessages
+} from '../lib/predefinedMessages.js';
+import { eventType } from '../lib/messenger/webhookEvents.js';
 import Person from '../lib/person';
 import Intent from '../lib/intent';
-import * as db from '../lib/database.js';
+import {
+    createPerson,
+    retrievePerson,
+    updatePerson,
+} from '../lib/database.js';
 import mysql from 'mysql';
 import Promise from 'bluebird';
-import { createSaltedgeCustomer } from '../lib/saltedge.js';
+import {
+    createCustomer,
+    deleteCustomer
+} from '../lib/saltedge.js';
 Promise.promisifyAll(require("mysql/lib/Connection").prototype);
 Promise.promisifyAll(require("mysql/lib/Pool").prototype);
 
@@ -43,7 +58,7 @@ function logError(intention, error) {
 
 export function handler(event, context: any, callback): void {
     context.callbackWaitsForEmptyEventLoop = false;
-    console.info("START Lambda handler");
+    console.info("\n NEW: Lambda handler");
     // console.info(event);
     // console.info(context);
     let httpMethod = event.httpMethod;
@@ -64,50 +79,68 @@ export function handler(event, context: any, callback): void {
         break;
         // respond(200, `httpMethod: ${httpMethod}`, callback);
     case "POST":
-        sendTextMessage(state.messenger.psid, "Hola", "RESPONSE").then(() => {
-            return sendWebUrlButtons(state.messenger.psid, "buttonText", [{title: 'test', url: 'https://www.google.de'}, {title: "2", url: "https://aldabot.es"}]);
-        }).then(() => {
-            return sendTextQuickReplies(state.messenger.psid, "Quick", [{title: "jo", payload: "jo"}, {title: "no", payload: "no"}]);
-        }).then((result) => {
+        switch(eventType(state.messenger.event)) {
+        case "MESSAGE":
             respondOK(callback);
-        });
-
-    //     const messenger = new Messenger(PAGE_ACCESS_TOKEN, body);
-    //     const event = messenger.getEvent();
-    //     const psid = messenger.getSenderPSID();
-    //     const lambda = new Lambda(callback);
-
-    //     if (event.message) {
-    //         console.log('event message');
-    //         console.log(JSON.stringify(event.message, null, 4));
-
-    //         // chk if quick reply
-    //         if (event.message.quick_reply) {
-    //             const quickReplyPayload = event.message.quick_reply.payload;
-    //             switch(quickReplyPayload) {
-    //             case "START_LOGIN":
-    //                 console.log("Quick Reply: START_LOGIN");
-    //                 // create Customer with PSID as identifier
-    //                 createSaltedgeCustomer(psid).then((customer) => {
-    //                     const dbPerson = { psid: customer.identifier, customer_id: customer.id };
-    //                     let promises = [];
-    //                     promises.push(db.updatePerson(pool, dbPerson));
-    //                     promises.push(db.createSaltedgeCustomer(pool, { id: customer.id }));
-    //                     return Promise.all(promises);
-    //                 }).then(() => {
-    //                     messenger.addTextMessage('¡Guay! Para comenzar su viaje hacia una mejor administración del dinero, necesito vincularme con su banca en línea.');
-    //                     messenger.addButtonTemplate("Sus detalles están protegidos por seguridad de nivel bancario. Están completamente protegidos y son 100% seguros.", [messenger.urlButton("https://aldabot.es/#/registrate", "Claro 🔒")]);
-    //                     return messenger.sendAsync();
-    //                 }).then(() => {
-    //                     lambda.respond(200, null);
-    //                 }).catch((error) => {
-    //                     logError("Creating Saltedge Customer and Updating person table", error);
-    //                     lambda.respond(200, error);
-    //                 });
-    //                 break;
-    //             default:
-    //                 lambda.respond(403, null);
-    //             }
+            break;
+        case "QUICK_REPLY":
+            createCustomer(state.messenger.psid).then((response) => {
+                if(response.data.error_class) {
+                    console.info(`Saltedge: ${response.data.error_class}`);
+                    // delete customer in saltedge, create new one and updatePerson
+                } else if(response.data.data.id) {
+                    let customerId = response.data.data.id;
+                    return updatePerson(
+                        pool,
+                        {psid: state.messenger.psid, customer_id: customerId}
+                    );
+                }
+                return Promise.resolve();
+            }).then(() => {
+                return sendFirstLoginMessages(state.messenger.psid).then(() => {
+                    respondOK(callback);
+                });
+            }).catch((error) => {
+                console.error(`MySQL: ${error.code}`);
+                return sendFirstLoginMessages(state.messenger.psid).then(() => {
+                    respondOK(callback);
+                });
+            });
+            break;
+        case "POSTBACK":
+            createPerson(pool, {psid: state.messenger.psid}).then(() => {
+                console.info("New person created");
+            }).catch((error) => {
+                if(error.code == "ER_DUP_ENTRY") {
+                   console.error("MySQL: duplicated entry!");
+                } else {
+                    console.error(`Error: while creating new Person: ${error.code}`);
+                }
+            }).finally(() => {
+                return sendWelcomeMessages(state.messenger.psid).then(() => {
+                    respondOK(callback);
+                });
+            });
+            break;
+        case "OPTIN":
+            const sessionId = state.messenger.event.optin.ref;
+            const dbPerson = {
+                psid: state.messenger.psid,
+                session_id: sessionId
+            };
+            updatePerson(pool, dbPerson).then(() => {
+                console.log("Fullfilled OPTIN Login");
+                respondOK(callback);
+            }).catch((error) => {
+                log.error("User Login, trying to update session_id from person", error);
+                respondError(callback);
+            });
+            break;
+        default:
+            console.error('Error: Facebook webhook event not defined!');
+            respondError(callback);
+        }
+        // if (state.messenger.event.message) {
     //         } else {
     //             // const dialogflow = new Dialogflow(DIALOGFLOW_CLIENT_ACCESS_TOKEN, psid);
     //             // let message = messenger.getMessageText();
@@ -125,50 +158,15 @@ export function handler(event, context: any, callback): void {
     //             // });
     //             lambda.respond(200, null);
     //         }
-    //     } else if (event.postback) {
-    //         const payload = event.postback.payload;
-    //         // Postback
-    //         console.log('Postback event');
-    //         console.log(JSON.stringify(event.postback, null, 4));
-
-    //         switch(payload) {
-    //         case "FACEBOOK_WELCOME":
-    //             // initial Messages
-    //             db.createPerson(pool, {psid}).then((result) => {
-    //             }).catch((error) => {
-    //                 logError(error);
-    //             }).finally(() => {
-    //                 messenger.addTextMessage('Hola, soy Alda. Estoy aquí para simplificar la administración de tu dinero.');
-    //                 messenger.addTextMessage('Puedes pensar en mí como tu asistente personal.');
-    //                 messenger.addQuickReply('Lo ayudaré a hacer un seguimiento de lo que está gastando, cómo está gastando y cómo puede hacerlo mejor.', [messenger.quickReply("Empecemos", "START_LOGIN")]);
-    //                 messenger.sendAsync().then(() => {
-    //                     lambda.respond(200, null);
-    //                 }).catch((error) => {
-    //                     lambda.respond(200, null);
-    //                 });
-    //             });
-    //             break;
-    //         default:
-    //             lambda.respond(403, null);
-    //         }
+        // } else if (state.messenger.event.postback) {
     //     } else if (event.optin) {
-    //         console.info("OPTIN event");
-    //         const sessionId = event.optin.ref;
-    //         const dbPerson = { psid, session_id: sessionId };
-    //         db.updatePerson(pool, dbPerson).then(() => {
-    //             console.log("Fullfilled OPTIN Login");
-    //             lambda.respond(200, null);
-    //         }).catch((error) => {
-    //             logError("User Login, trying to update session_id from person", error);
-    //             lambda.respond(200, null);
-    //         });
     //     } else {
     //         console.log("other event?");
-    //     }
-    //     break;
-    // default:
-    //     console.error(`Unsuported httpMethod: ${httpMethod}`);
-    //   respond(403, `Unsuported httpMethod: ${httpMethod}`, callback);
+        // }
+        break;
+    default:
+        console.error(`Unsuported httpMethod: ${httpMethod}`);
+        respond(403, `Unsuported httpMethod: ${httpMethod}`, callback);
     }
 };
 

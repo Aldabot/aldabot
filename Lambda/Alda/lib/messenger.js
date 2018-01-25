@@ -40,7 +40,7 @@ const api = create({
 });
 
 export const send = (message) => {
-    return api.post('/', message);
+    return () => { return api.post('/', message); };
 };
 
 
@@ -64,8 +64,9 @@ const createTextQuickReply = (title, payload) => {
     };
 };
 
-const createButtonTemplateMessage = (psid, text, buttons) => {
+const createButtonTemplateMessage = (psid, text, buttons, messagingType) => {
     let buttonTemplateMessage = {
+        messaging_type: messagingType,
         recipient: {
             id: psid
         },
@@ -96,6 +97,9 @@ const createWebUrlButton = (title: string, url: string): WebUrlButton => {
 export const sendTextMessage = (psid, text, messagingType) => {
     return send(createTextMessage(psid, text, messagingType));
 };
+export const respondTextMessage = (psid, text) => {
+    return sendTextMessage(psid, text, "RESPONSE");
+}
 
 export const sendTextQuickReplies = (psid: string, text: string, quickReplies: [QuickReply], messagingType: string) => {
     let quickReplyMessage = createTextMessage(psid, text, messagingType);
@@ -104,10 +108,15 @@ export const sendTextQuickReplies = (psid: string, text: string, quickReplies: [
     });
     return send(quickReplyMessage);
 };
+export const respondTextQuickReplies = (psid, text, quickReplies) => {
+    return sendTextQuickReplies(psid, text, quickReplies, "RESPONSE");
+};
 
-export const sendWebUrlButtons = (psid: string, text, buttons: [WebUrlButton]) => {
-    console.log(JSON.stringify(createButtonTemplateMessage(psid, text, buttons), null, 4));
-    return send(createButtonTemplateMessage(psid, text, buttons));
+export const sendWebUrlButtons = (psid: string, text, buttons: [WebUrlButton], messagingType) => {
+    return send(createButtonTemplateMessage(psid, text, buttons, messagingType));
+};
+export const respondWebUrlButtons = (psid, text, buttons) => {
+    return sendWebUrlButtons(psid, text, buttons, "RESPONSE");
 };
 
 export default class Messenger {

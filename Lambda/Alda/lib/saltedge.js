@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { create } from 'apisauce';
 
 const headers = {
     'Accept': 'application/json',
@@ -7,21 +7,22 @@ const headers = {
     'Service-secret': 'b6aeHuRHbvQouDqS_zB-R0cdXzKdvbi3kLnkMYE6EcU'
 };
 
-const instance = axios.create({
+const api = create({
     baseURL: 'https://www.saltedge.com/api/v3',
     timeout: 1000,
     headers
 });
 
-export const createSaltedgeCustomer = (identifier) => {
+
+export const createCustomer = (identifier) => {
     const params = {
         data: {
             identifier
         }
     };
-    return instance.post('/customers', params).then((result) => {
-        return result.data.data;
-    }).catch((error) => {
-        throw error.response.data;
-    });
+    return api.post('/customers', params);
 };
+
+export const deleteCustomer = (customerId) => {
+    return api.delete(`/customers/${customerId}`);
+}
