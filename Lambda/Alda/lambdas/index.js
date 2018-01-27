@@ -64,17 +64,11 @@ export function handler(event, context: any, callback): void {
     console.info("\n NEW: Lambda handler");
     // console.info(event);
     // console.info(context);
+
     let httpMethod = event.httpMethod;
     let queryStringParameters = event.queryStringParameters;
     let body = JSON.parse(event.body);
-
-    // centralized state
-    let state = {
-        messenger: {
-            psid: body.entry[0].messaging[0].sender.id,
-            event: body.entry[0].messaging[0]
-        }
-    };
+    console.log(body.entry[0].messaging[0]);
 
     switch(httpMethod) {
     case "GET":
@@ -82,6 +76,13 @@ export function handler(event, context: any, callback): void {
         break;
         // respond(200, `httpMethod: ${httpMethod}`, callback);
     case "POST":
+        // centralized state
+        let state = {
+            messenger: {
+                psid: body.entry[0].messaging[0].sender.id,
+                event: body.entry[0].messaging[0]
+            }
+        };
         switch(eventType(state.messenger.event)) {
         case "MESSAGE":
             getIntent(state.messenger.psid, getMessageText(state.messenger.event)).then((intent) => {
@@ -126,6 +127,7 @@ export function handler(event, context: any, callback): void {
             }).catch((error) => {
                 console.log(error);
                 respondTextMessage(state.messenger.psid, 'Ups algo ha ido mal.');
+                respondOK(callback);
             });
             break;
         case "OPTIN":

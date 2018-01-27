@@ -81,19 +81,25 @@ function webhookEvent(eventType, text, payload) {
 };
 
 
-
+// console.log(webhookEvent("messages", "saldo"));
 const messengerBody = JSON.stringify(webhookEvent("messages", "saldo"), null, 4);
 // const messengerBody = JSON.stringify(webhookEvent("quickReply", "Empecemos", "START_LOGIN"), null, 4);
-console.log(messengerBody);
+// console.log(messengerBody);
 const event = {
     httpMethod: "POST",
     queryStringParameters: {},
     body: messengerBody
 };
 
+
+
+
+
 const callback = (noIdea, response) => {
     console.log(JSON.stringify(response, null, 4));
     process.exit();
 };
+
+
 
 lambda(event, context, callback);
