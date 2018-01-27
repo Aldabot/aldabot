@@ -14,7 +14,6 @@ export const respondIntent = (pool, psid, intent) => {
     console.log(psid);
     switch(intent) {
     case "alda.query.balance":
-        console.log('nice');
         return queryBalance(pool, psid).then((response) => {
             return respondTextMessage(psid, response);
         }).catch((error) => {
@@ -34,7 +33,6 @@ const queryBalance = (pool, psid) => {
             for (let account of accounts) {
                 total += account.balance;
                 let accountNature = translateToSp(account.nature);
-                console.log(accountNature);
                 response += `${accountNature.slice(0,10)} (${account.name.slice(-4)}): ${account.balance} €\n`;
             }
         }
