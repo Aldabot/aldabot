@@ -2,7 +2,8 @@ import {
     translateToSp
 } from './translate';
 import {
-    retrieveAccounts
+    retrieveAccounts,
+    retrieveTransactions
 } from './database.js';
 import {
     respondTextMessage
@@ -20,24 +21,32 @@ export const respondIntent = (pool, psid, intent) => {
             throw error;
         });
         break;
+    case "alda.query.expenses":
+        return queryExpenses(pool, psid).then((response) => {
+            return respondTextMessage(psid, response);
+        });
     default:
         return respondTextMessage(psid, "No te entiendo");
     }
 };
 
 const queryBalance = (pool, psid) => {
-    return retrieveAccounts(pool, psid).then((logins) => {
+    return retrieveAccounts(pool, psid).then((accounts) => {
         let total = 0;
         var response = 'Hola, \n';
-        for (var accounts of logins) {
-            for (let account of accounts) {
-                total += account.balance;
-                let accountNature = translateToSp(account.nature);
-                response += `${accountNature.slice(0,10)} (${account.name.slice(-4)}): ${account.balance} €\n`;
-            }
+        for (let account of accounts) {
+            total += account.balance;
+            let accountNature = translateToSp(account.nature);
+            response += `${accountNature.slice(0,10)} (${account.name.slice(-4)}): ${account.balance} €\n`;
         }
         response += `\r Total: ${total} € 📈`;
         return response;
+    });
+};
+
+const queryExpenses = (pool, psid) => {
+    return retrieveTransactions(pool, psid).then((transactions) => {
+        return "expenses";
     });
 };
 
