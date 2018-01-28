@@ -71,10 +71,12 @@ const queryExpenses = (pool, psid) => {
                 break;
             }
         }
-        Object.entries(expenses).forEach(([key, category]) => {
-            if(category.amount != 0) {
-                response += category.amount.toFixed(0) + "€ " + translateToSp(category.name) + " " + category.emoji + "\n";
-                total += category.amount;
+        Object.keys(expenses).forEach((key) => {
+            console.log(key);
+            console.log(expenses[key]);
+            if(expenses[key].amount != 0) {
+                response += expenses[key].amount.toFixed(0) + "€ " + translateToSp(expenses[key].name) + " " + expenses[key].emoji + "\n";
+                total += expenses[key].amount;
             }
         });
         if(total != 0) {

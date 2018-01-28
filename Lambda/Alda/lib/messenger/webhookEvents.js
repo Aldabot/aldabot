@@ -52,9 +52,11 @@ export const respondToPostback = (pool, event, callback) => {
             return sendWelcomeMessages(psid);
         });
         break;
-    case "QUERY_SALDO":
-        const intent = "alda.query.balance";
-        return respondIntent(pool, psid, intent);
+    case "QUERY_BALANCE":
+        return respondIntent(pool, psid, "alda.query.balance");
+        break;
+    case "QUERY_EXPENSES":
+        return respondIntent(pool, psid, "alda.query.expenses");
         break;
     default:
         return respondTextMessage(psid, 'Que decias?');
