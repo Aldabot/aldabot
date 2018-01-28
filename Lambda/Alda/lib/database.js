@@ -92,7 +92,15 @@ export const retrieveTransactionFromAccountId = (pool, accountId) => {
 };
 export const retrieveTransactions = (pool, psid) => {
     return retrieveAccounts(pool, psid).then((accounts) => {
-
+        let promises = [];
+        for (let account of accounts) {
+            promises.push(retrieveTransactionFromAccountId(pool, account.id));
+        }
+        return Promise.all(promises).then((accountTransactions) => {
+            return [].concat(...accountTransactions);
+        }).catch((error) => {
+            throw error;
+        });
     }).catch((error) => {
         throw error;
     });

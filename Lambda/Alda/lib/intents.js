@@ -46,9 +46,37 @@ const queryBalance = (pool, psid) => {
 
 const queryExpenses = (pool, psid) => {
     return retrieveTransactions(pool, psid).then((transactions) => {
-        return "expenses";
+        let total = 0;
+        let expenses = {
+            "shopping": {
+                name: "Shopping",
+                emoji: "🛍",
+                amount: 0
+            }
+        };
+        var response = "";
+        for (let transaction of transactions) {
+            switch(transaction.category) {
+                case "shopping":
+                expenses.shopping.amount -= transaction.amount;
+                break;
+            }
+        }
+        Object.entries(expenses).forEach(([key, category]) => {
+            response += category.amount + "€ " + translateToSp(category.name) + " " + category.emoji;
+        });
+        return response;
     });
 };
+
+const expensesByCategory = (transaction) => {
+    switch(transaction.category) {
+    case "shopping":
+        return "shopping";
+    default:
+        return "";
+    }
+}
 
 
 export default class Intent {

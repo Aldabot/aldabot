@@ -10,6 +10,7 @@ const spDictionary = {
     'investment': 'Inversión',
     'mortgage': 'Hipoteca',
     'savings': 'Ahorros',
+    'Shopping': 'Compras',
     'loan': 'Préstamo'
 };
 
