@@ -52,6 +52,11 @@ const queryExpenses = (pool, psid) => {
                 name: "Shopping",
                 emoji: "🛍",
                 amount: 0
+            },
+            "restaurants": {
+                name: "Restaurants",
+                emoji: "🥘",
+                amount: 0
             }
         };
         var response = "";
@@ -60,11 +65,21 @@ const queryExpenses = (pool, psid) => {
                 case "shopping":
                 expenses.shopping.amount -= transaction.amount;
                 break;
+            case "cafes_and_restaurants":
+            case "alcohol_and_bars" :
+                expenses.restaurants.amount -= transaction.amount;
+                break;
             }
         }
         Object.entries(expenses).forEach(([key, category]) => {
-            response += category.amount + "€ " + translateToSp(category.name) + " " + category.emoji;
+            if(category.amount != 0) {
+                response += category.amount.toFixed(0) + "€ " + translateToSp(category.name) + " " + category.emoji + "\n";
+                total += category.amount;
+            }
         });
+        if(total != 0) {
+            response += "Total: " + total.toFixed(0) + "€";
+        }
         return response;
     });
 };
