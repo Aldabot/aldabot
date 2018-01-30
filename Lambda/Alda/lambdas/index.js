@@ -68,7 +68,6 @@ export function handler(event, context: any, callback): void {
     let httpMethod = event.httpMethod;
     let queryStringParameters = event.queryStringParameters;
     let body = JSON.parse(event.body);
-    console.log(body.entry[0].messaging[0]);
 
     switch(httpMethod) {
     case "GET":

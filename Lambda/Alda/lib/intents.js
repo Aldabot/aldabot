@@ -10,9 +10,6 @@ import {
 } from './messenger.js';
 
 export const respondIntent = (pool, psid, intent) => {
-    console.log('respond');
-    console.log(intent);
-    console.log(psid);
     switch(intent) {
     case "alda.query.balance":
         return queryBalance(pool, psid).then((response) => {

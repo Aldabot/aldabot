@@ -40,7 +40,6 @@ const api = create({
 });
 
 export const send = (message) => {
-    console.log('send called');
     return api.post('/', message);
 };
 

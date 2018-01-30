@@ -17,7 +17,6 @@ import {
 
 // Returns 'MESSAGE', 'QUICK_REPLY', 'OPTIN' or 'POSTBACK' else 'UNKOWN'
 export const eventType = (event) => {
-    console.log(JSON.stringify(event, null, 4));
     if(event.message) {
         if(event.message.quick_reply) {
             return "QUICK_REPLY";
