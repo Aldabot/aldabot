@@ -11,6 +11,7 @@ export const getIntent = (psid, message) => {
         });
 
         request.on('response', function(response) {
+            console.log(JSON.stringify(response, null, 4));
             resolve(response.result.metadata.intentName);
         });
 
