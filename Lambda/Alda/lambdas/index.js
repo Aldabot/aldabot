@@ -84,8 +84,12 @@ export function handler(event, context: any, callback): void {
         };
         switch(eventType(state.messenger.event)) {
         case "MESSAGE":
-            getIntent(state.messenger.psid, getMessageText(state.messenger.event)).then((intent) => {
-                return respondIntent(pool, state.messenger.psid, intent);
+            getIntent(state.messenger.psid, getMessageText(state.messenger.event)).then((response) => {
+                if (response.fulfillment) {
+                    return respondTextMessage(state.messenger.psid, response.fulfillment.speech);
+                } else {
+                    return respondIntent(pool, state.messenger.psid, response.intentName);
+                }
             }).then(() => {
                 respondOK(callback);
             }).catch((error) => {

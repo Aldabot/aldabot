@@ -12,7 +12,15 @@ export const getIntent = (psid, message) => {
 
         request.on('response', function(response) {
             console.log(JSON.stringify(response, null, 4));
-            resolve(response.result.metadata.intentName);
+
+            let obj = {
+                intentName: response.result.metadata.intentName
+            };
+            if (response.result.fulfillment.speech != "") {
+                obj.fulfillment = response.result.fulfillment;
+            }
+
+            resolve(obj);
         });
 
         request.on('error', function(error) {
