@@ -32,6 +32,7 @@ type ButtonTemplate = {
     buttons: Button
 };
 
+if (!process.env.FB_PAGE_ACCESS_TOKEN) { throw ".env: facebook access token missing"; };
 const api = create({
     baseURL: 'https://graph.facebook.com/v2.6/me/messages',
     params: {
