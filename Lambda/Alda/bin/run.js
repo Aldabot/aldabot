@@ -2,7 +2,7 @@ const lambdaModule = require('../dist/index.js');
 const lambda = lambdaModule['handler'];
 
 function succeed(result) {
-  console.log(result);
+  // console.log(result);
   process.exit(0);
 }
 
@@ -82,7 +82,8 @@ function webhookEvent(eventType, text, payload) {
 
 
 // console.log(webhookEvent("messages", "saldo"));
-const messengerBody = JSON.stringify(webhookEvent("messages", "saldo"), null, 4);
+// const messengerBody = JSON.stringify(webhookEvent("messages", "saldo"), null, 4);
+const messengerBody = JSON.stringify(webhookEvent("messages", "gastos"), null, 4);
 // const messengerBody = JSON.stringify(webhookEvent("quickReply", "Empecemos", "START_LOGIN"), null, 4);
 // console.log(messengerBody);
 const event = {
@@ -96,7 +97,7 @@ const event = {
 
 
 const callback = (noIdea, response) => {
-    console.log(JSON.stringify(response, null, 4));
+    // console.log(JSON.stringify(response, null, 4));
     process.exit();
 };
 

@@ -10,7 +10,6 @@ export const getIntent = (psid, message) => {
             sessionId: psid
         });
 
-        console.log('DIALOGFLOW response');
         request.on('response', function(response) {
             resolve(response.result.metadata.intentName);
         });
