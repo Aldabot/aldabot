@@ -1,7 +1,10 @@
 import dotenv from 'dotenv';
 import {
     respondTextMessage,
-    respondImageMessage
+    respondImageMessage,
+    respondGenericTemplateMessage,
+    createWebUrlButton,
+    createElement
 } from "./messenger.js";
 import Promise from "bluebird";
 var apiai = require('apiai');
@@ -11,7 +14,6 @@ const app = apiai(process.env.DIALOGFLOW_CLIENT_ACCESS_TOKEN);
 
 const hasMessages = (response) => {
     let messages = response.result.fulfillment.messages;
-    console.log(messages[0].speech);
     if (messages[0].speech != "") {
         return true;
     }
@@ -41,9 +43,17 @@ export const getIntent = (psid, message) => {
 
 export const dialogflowRedirectMessages = (psid, messages) => {
     let promises = [];
+    let elements = [];
     for (let message of messages) {
         switch(message.type) {
         case 1: // Card
+            let buttons = [];
+            if (message.buttons) {
+                buttons = message.buttons.map((button) => {
+                    return createWebUrlButton(button.text, "https://aldabot.es"); //button.postback);
+                });
+            }
+            elements.push(createElement(message.title, message.subtitle, buttons));
             break;
         case 3: // Image
             promises.push(respondImageMessage(psid, message.imageUrl));
@@ -56,6 +66,12 @@ export const dialogflowRedirectMessages = (psid, messages) => {
             }
         }
     }
+    // !!! messages are not in ORDER !!! FIX THAT
+    // elements will always be send last
+    if (elements.length > 0) {
+        promises.push(respondGenericTemplateMessage(psid, elements));
+    };
 
+    // !! all is parallel need to serialize!
     return Promise.all(promises);
-}
+};

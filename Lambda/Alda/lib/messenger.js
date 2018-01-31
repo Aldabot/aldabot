@@ -41,6 +41,7 @@ const api = create({
 });
 
 export const send = (message) => {
+    console.log(JSON.stringify(message, null, 4));
     return api.post('/', message);
 };
 
@@ -95,6 +96,72 @@ const createTextQuickReply = (title, payload) => {
     };
 };
 
+export const createElement = (title, subtitle, buttons) => {
+    let element = {
+        title,
+        subtitle,
+        buttons: []
+    };
+    element.buttons = buttons.map((button) => {
+        return createWebUrlButton(button.title, button.url);
+    });
+    return element;
+};
+
+const createGenericTemplateMessage = (psid, elements, messagingType) => {
+    let genericTemplateMessage = {
+        recipient: {
+            id: psid
+        },
+        // message:{
+        //     attachment:{
+        //         type:"template",
+        //         payload:{
+        //             template_type:"generic",
+        //             elements:[
+        //                 {
+        //                     title:"Welcome to Peter'\''s Hats",
+        //                     image_url:"https://www.w3schools.com/howto/howto_js_image_comparison.asp",
+        //                     subtitle:"We'\''ve got the right hat for everyone.",
+        //                     default_action: {
+        //                         type: "web_url",
+        //                         url: "https://aldabot.es",
+        //                         messenger_extensions: true,
+        //                         webview_height_ratio: "tall",
+        //                         fallback_url: "https://aldabot.es"
+        //                     },
+        //                     buttons:[
+        //                         {
+        //                             type:"web_url",
+        //                             url:"https://aldabot.es",
+        //                             title:"View Website"
+        //                         },{
+        //                             type:"postback",
+        //                             title:"Start Chatting",
+        //                             payload:"DEVELOPER_DEFINED_PAYLOAD"
+        //                         }
+        //                     ]
+        //                 }
+        //             ]
+        //         }
+        //     }
+        // }
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "generic",
+                    elements: []
+                }
+            }
+        }
+    };
+    genericTemplateMessage.message.attachment.payload.elements = elements.map((element) => {
+        return createElement(element.title, element.subtitle, element.buttons);
+    });
+    return genericTemplateMessage;
+};
+
 const createButtonTemplateMessage = (psid, text, buttons, messagingType) => {
     let buttonTemplateMessage = {
         messaging_type: messagingType,
@@ -117,7 +184,7 @@ const createButtonTemplateMessage = (psid, text, buttons, messagingType) => {
     });
     return buttonTemplateMessage;
 };
-const createWebUrlButton = (title: string, url: string): WebUrlButton => {
+export const createWebUrlButton = (title: string, url: string): WebUrlButton => {
     return {
         type: "web_url",
         url,
@@ -160,6 +227,13 @@ export const sendWebUrlButtons = (psid: string, text, buttons: [WebUrlButton], m
 };
 export const respondWebUrlButtons = (psid, text, buttons) => {
     return sendWebUrlButtons(psid, text, buttons, "RESPONSE");
+};
+
+export const sendGenericTemplateMessage = (psid, elements, messagingType) => {
+    return send(createGenericTemplateMessage(psid, elements, messagingType));
+};
+export const respondGenericTemplateMessage = (psid, elements) => {
+    return sendGenericTemplateMessage(psid, elements, "RESPONSE");
 };
 
 
