@@ -57,6 +57,36 @@ const createTextMessage = (psid: string, text: string, messagingType: string): T
     };
 };
 
+const createImageMessage = (psid, url, messagingType) => {
+    return {
+        messaging_type: messagingType,
+        recipient: {
+            id: psid
+        },
+        message: {
+            attachment: {
+                type: "image",
+                payload: {
+                    url,
+                    is_reusable: true
+                }
+            }
+        }
+    };
+};
+
+const createAttachmentMessage = (psid, attachment, messagingType) => {
+    return {
+        messaging_type: messagingType,
+        recipient: {
+            id: psid
+        },
+        message: {
+          attachment
+        }
+    };
+};
+
 const createTextQuickReply = (title, payload) => {
     return {
         content_type: "text",
@@ -100,6 +130,18 @@ export const sendTextMessage = (psid, text, messagingType) => {
 };
 export const respondTextMessage = (psid, text) => {
     return sendTextMessage(psid, text, "RESPONSE");
+};
+export const sendImageMessage = (psid, url, messagingType) => {
+    return send(createImageMessage(psid, url, messagingType));
+};
+export const respondImageMessage = (psid, url) => {
+    return sendImageMessage(psid, url, "RESPONSE");
+};
+export const sendAttachementMessage = (psid, attachment, messagingType) => {
+    return send(createAttachmentMessage(psid, attachment, messagingType));
+};
+export const respondAttachmentMessage = (psid, attachment) => {
+    return sendAttachementMessage(psid, attachment, "RESPONSE");
 };
 
 export const sendTextQuickReplies = (psid: string, text: string, quickReplies: [QuickReply], messagingType: string) => {

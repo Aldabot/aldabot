@@ -1,7 +1,8 @@
 require('dotenv').config(); // process.env.<WHATEVER>
 import request from 'request';
 import {
-    getIntent
+    getIntent,
+    dialogflowRedirectMessages
 } from '../lib/dialogflow';
 import {
     respondOK,
@@ -9,6 +10,7 @@ import {
 } from '../lib/lambda';
 import {
     respondTextMessage,
+    respondAttachmentMessage,
     getMessageText
 } from '../lib/messenger.js';
 import {
@@ -85,11 +87,13 @@ export function handler(event, context: any, callback): void {
         switch(eventType(state.messenger.event)) {
         case "MESSAGE":
             getIntent(state.messenger.psid, getMessageText(state.messenger.event)).then((response) => {
-                if (response.fulfillment) {
-                    return respondTextMessage(state.messenger.psid, response.fulfillment.speech);
-                } else {
-                    return respondIntent(pool, state.messenger.psid, response.intentName);
+                if (response.hasMessages) {
+                    console.log(response.hasMessages);
+                    let messages = response.fulfillment.messages;
+                    return dialogflowRedirectMessages(state.messenger.psid, messages);
                 }
+                let intent = response.metadata.intentName;
+                return respondIntent(pool, state.messenger.psid, intent);
             }).then(() => {
                 respondOK(callback);
             }).catch((error) => {
