@@ -44,34 +44,36 @@ export const getIntent = (psid, message) => {
 export const dialogflowRedirectMessages = (psid, messages) => {
     let promises = [];
     let elements = [];
-    for (let message of messages) {
-        switch(message.type) {
+    for (let i in messages) {
+        switch(messages[i].type) {
         case 1: // Card
-            let buttons = [];
-            if (message.buttons) {
-                buttons = message.buttons.map((button) => {
-                    return createWebUrlButton(button.text, "https://aldabot.es"); //button.postback);
-                });
+            // create whole carousel ( get all following cards and join elements together)
+            while (messages[i].type == 1) {
+                let buttons = [];
+                if (messages[i].buttons) {
+                    buttons = messages[i].buttons.map((button) => {
+                        return createWebUrlButton(button.text, "https://aldabot.es"); //button.postback);
+                    });
+                }
+                elements.push(createElement(messages[i].title, messages[i].subtitle, buttons));
+                i++;
             }
-            elements.push(createElement(message.title, message.subtitle, buttons));
+            promises.push( () => {return respondGenericTemplateMessage(psid, elements);} );
             break;
         case 3: // Image
-            promises.push(respondImageMessage(psid, message.imageUrl));
+            promises.push( () => {return respondImageMessage(psid, messages[i].imageUrl);} );
             break;
         default:
-            if (message.speech) {
-                promises.push(respondTextMessage(psid, message.speech));
+            if (messages[i].speech) {
+                promises.push( () => {return respondTextMessage(psid, messages[i].speech);} );
             } else {
                 console.error("dialogflow response type not known");
             }
         }
     }
-    // !!! messages are not in ORDER !!! FIX THAT
-    // elements will always be send last
-    if (elements.length > 0) {
-        promises.push(respondGenericTemplateMessage(psid, elements));
-    };
 
     // !! all is parallel need to serialize!
-    return Promise.all(promises);
+    return Promise.each(promises, (promise) => {
+        return promise();
+    });
 };
