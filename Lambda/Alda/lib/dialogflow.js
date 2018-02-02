@@ -45,7 +45,7 @@ export const getIntent = (psid, message) => {
 export const dialogflowRedirectMessages = (psid, messages) => {
     let promises = [];
     let elements = [];
-    for (var i = 0; i < messages.length; i++) {
+    for (let i = 0; i < messages.length; i++) {
         switch(messages[i].type) {
         case 1: // Card
             console.log(JSON.stringify(messages[i], null, 4));
@@ -71,10 +71,9 @@ export const dialogflowRedirectMessages = (psid, messages) => {
             promises.push( () => {return respondImageMessage(psid, messages[i].imageUrl);} );
             break;
         default:
-            let j = i;
-            if(messages[j] && messages[j].speech) {
+            if(messages[i] && messages[i].speech) {
                 promises.push( () => {
-                    return respondTextMessage(psid, messages[j].speech);
+                    return respondTextMessage(psid, messages[i].speech);
                 } );
             } else {
                 console.error("Dialogflow Redirect messages TYPE not defined");
