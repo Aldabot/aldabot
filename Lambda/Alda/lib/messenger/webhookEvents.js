@@ -26,7 +26,6 @@ export const eventType = (event) => {
     } else if(event.postback) {
         return "POSTBACK";
     } else if(event.optin) {
-        console.log('opt');
         return "OPTIN";
     }
 
@@ -52,7 +51,7 @@ export const respondToPostback = (pool, event, callback) => {
 
     if (title == "Seleccionar") {
         // handle as message with text=payload
-        return respondToMessage(psid, title, pool, event);
+        return respondToMessage(psid, payload, pool, event);
     } else {
         switch(payload) {
         case "FACEBOOK_WELCOME":
