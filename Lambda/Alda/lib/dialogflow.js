@@ -45,7 +45,7 @@ export const getIntent = (psid, message) => {
 export const dialogflowRedirectMessages = (psid, messages) => {
     let promises = [];
     let elements = [];
-    for (let i in messages) {
+    for (var i = 0; i < messages.length; i++) {
         switch(messages[i].type) {
         case 1: // Card
             console.log(JSON.stringify(messages[i], null, 4));
@@ -54,7 +54,7 @@ export const dialogflowRedirectMessages = (psid, messages) => {
                 let buttons = [];
                 if (messages[i].buttons) {
                     buttons = messages[i].buttons.map((button) => {
-                        // if url => urlButton else postbackButton
+                        // if url => urlbutton else postbackbutton
                         if(isURL(button.postback)) {
                             return createWebUrlButton(button.text, button.postback); //button.postback);
                         } else {
@@ -71,15 +71,17 @@ export const dialogflowRedirectMessages = (psid, messages) => {
             promises.push( () => {return respondImageMessage(psid, messages[i].imageUrl);} );
             break;
         default:
-            if (messages[i].speech) {
-                promises.push( () => {return respondTextMessage(psid, messages[i].speech);} );
+            let j = i;
+            if(messages[j] && messages[j].speech) {
+                promises.push( () => {
+                    return respondTextMessage(psid, messages[j].speech);
+                } );
             } else {
-                console.error("dialogflow response type not known");
+                console.error("Dialogflow Redirect messages TYPE not defined");
             }
         }
     }
 
-    // !! all is parallel need to serialize!
     return Promise.each(promises, (promise) => {
         return promise();
     });

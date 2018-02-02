@@ -41,6 +41,7 @@ const api = create({
 });
 
 export const send = (message) => {
+    // console.log(JSON.stringify(message, null, 4));
     return api.post('/', message).then((result) => {
         if(result && result.data && result.data.error) {
             console.log(result.data.error);
@@ -105,15 +106,11 @@ const createTextQuickReply = (title, payload) => {
     };
 };
 export const createElement = (title, subtitle, buttons) => {
-    let element = {
+    return {
         title,
         subtitle,
-        buttons: []
+        buttons
     };
-    element.buttons = buttons.map((button) => {
-        return createWebUrlButton(button.title, button.url);
-    });
-    return element;
 };
 const createGenericTemplateMessage = (psid, elements, messagingType) => {
     let genericTemplateMessage = {
