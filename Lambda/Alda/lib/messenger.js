@@ -41,9 +41,22 @@ const api = create({
 });
 
 export const send = (message) => {
-    return api.post('/', message);
+    return api.post('/', message).then((result) => {
+        if(result && result.data && result.error) {
+            console.log(result.data.error);
+        }
+        return result;
+    }).catch((error) => {
+        console.error(JSON.stringify(error, null, 4));
+        throw error;
+    });
 };
 
+
+
+///////////////////////////////////////////////////////////////////////////////
+// CREATE
+//////////////////////////////////////////////////////////////////////////////
 
 const createTextMessage = (psid: string, text: string, messagingType: string): TextMessage => {
     return {
@@ -56,7 +69,6 @@ const createTextMessage = (psid: string, text: string, messagingType: string): T
         }
     };
 };
-
 const createImageMessage = (psid, url, messagingType) => {
     return {
         messaging_type: messagingType,
@@ -74,7 +86,6 @@ const createImageMessage = (psid, url, messagingType) => {
         }
     };
 };
-
 const createAttachmentMessage = (psid, attachment, messagingType) => {
     return {
         messaging_type: messagingType,
@@ -86,7 +97,6 @@ const createAttachmentMessage = (psid, attachment, messagingType) => {
         }
     };
 };
-
 const createTextQuickReply = (title, payload) => {
     return {
         content_type: "text",
@@ -94,7 +104,6 @@ const createTextQuickReply = (title, payload) => {
         payload
     };
 };
-
 export const createElement = (title, subtitle, buttons) => {
     let element = {
         title,
@@ -106,45 +115,11 @@ export const createElement = (title, subtitle, buttons) => {
     });
     return element;
 };
-
 const createGenericTemplateMessage = (psid, elements, messagingType) => {
     let genericTemplateMessage = {
         recipient: {
             id: psid
         },
-        // message:{
-        //     attachment:{
-        //         type:"template",
-        //         payload:{
-        //             template_type:"generic",
-        //             elements:[
-        //                 {
-        //                     title:"Welcome to Peter'\''s Hats",
-        //                     image_url:"https://www.w3schools.com/howto/howto_js_image_comparison.asp",
-        //                     subtitle:"We'\''ve got the right hat for everyone.",
-        //                     default_action: {
-        //                         type: "web_url",
-        //                         url: "https://aldabot.es",
-        //                         messenger_extensions: true,
-        //                         webview_height_ratio: "tall",
-        //                         fallback_url: "https://aldabot.es"
-        //                     },
-        //                     buttons:[
-        //                         {
-        //                             type:"web_url",
-        //                             url:"https://aldabot.es",
-        //                             title:"View Website"
-        //                         },{
-        //                             type:"postback",
-        //                             title:"Start Chatting",
-        //                             payload:"DEVELOPER_DEFINED_PAYLOAD"
-        //                         }
-        //                     ]
-        //                 }
-        //             ]
-        //         }
-        //     }
-        // }
         message: {
             attachment: {
                 type: "template",
@@ -160,7 +135,6 @@ const createGenericTemplateMessage = (psid, elements, messagingType) => {
     });
     return genericTemplateMessage;
 };
-
 const createButtonTemplateMessage = (psid, text, buttons, messagingType) => {
     let buttonTemplateMessage = {
         messaging_type: messagingType,
@@ -190,6 +164,18 @@ export const createWebUrlButton = (title: string, url: string): WebUrlButton => 
         title
     };
 };
+export const createPostbackButton = (title, payload) => {
+    return {
+        type: "postback",
+        title,
+        payload
+    };
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// SEND
+////////////////////////////////////////////////////////////////////////////////
 
 export const sendTextMessage = (psid, text, messagingType) => {
     return send(createTextMessage(psid, text, messagingType));

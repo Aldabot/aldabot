@@ -4,6 +4,7 @@ import {
     respondImageMessage,
     respondGenericTemplateMessage,
     createWebUrlButton,
+    createPostbackButton,
     createElement
 } from "./messenger.js";
 import Promise from "bluebird";
@@ -47,12 +48,18 @@ export const dialogflowRedirectMessages = (psid, messages) => {
     for (let i in messages) {
         switch(messages[i].type) {
         case 1: // Card
+            console.log(JSON.stringify(messages[i], null, 4));
             // create whole carousel ( get all following cards and join elements together)
-            while (messages[i].type == 1) {
+            while (messages[i] && messages[i].type == 1) {
                 let buttons = [];
                 if (messages[i].buttons) {
                     buttons = messages[i].buttons.map((button) => {
-                        return createWebUrlButton(button.text, "https://aldabot.es"); //button.postback);
+                        // if url => urlButton else postbackButton
+                        if(isURL(button.postback)) {
+                            return createWebUrlButton(button.text, button.postback); //button.postback);
+                        } else {
+                            return createPostbackButton(button.text, button.postback);
+                        }
                     });
                 }
                 elements.push(createElement(messages[i].title, messages[i].subtitle, buttons));
@@ -77,3 +84,13 @@ export const dialogflowRedirectMessages = (psid, messages) => {
         return promise();
     });
 };
+
+function isURL(str) {
+    var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+                             '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.?)+[a-z]{2,}|'+ // domain name
+                             '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+                             '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+                             '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+                             '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+    return pattern.test(str);
+}
