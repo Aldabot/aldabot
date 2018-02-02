@@ -28,7 +28,7 @@ export const getIntent = (psid, message) => {
         });
 
         request.on('response', function(response) {
-            // console.log(JSON.stringify(response, null, 4));
+            console.log(JSON.stringify(response, null, 4));
             response.result.hasMessages = hasMessages(response);
             resolve(response.result);
         });
@@ -45,6 +45,7 @@ export const getIntent = (psid, message) => {
 export const dialogflowRedirectMessages = (psid, messages) => {
     let promises = [];
     let elements = [];
+    console.log(JSON.stringify(messages, null, 4));
     for (let i = 0; i < messages.length; i++) {
         switch(messages[i].type) {
         case 1: // Card
@@ -53,8 +54,9 @@ export const dialogflowRedirectMessages = (psid, messages) => {
                 let buttons = [];
                 if (messages[i].buttons) {
                     buttons = messages[i].buttons.map((button) => {
+                        // NEEDS TO BE FIXED: until now ONLY https://aldabot.es buttons are allowed
                         // if url => urlbutton else postbackbutton
-                        if(isURL(button.postback)) {
+                        if(button.postback == "https://aldabot.es") {
                             return createWebUrlButton(button.text, button.postback); //button.postback);
                         } else {
                             return createPostbackButton(button.text, button.postback);
@@ -83,12 +85,3 @@ export const dialogflowRedirectMessages = (psid, messages) => {
     });
 };
 
-function isURL(str) {
-    var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
-                             '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.?)+[a-z]{2,}|'+ // domain name
-                             '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
-                             '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
-                             '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
-                             '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
-    return pattern.test(str);
-}

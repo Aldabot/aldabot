@@ -7,7 +7,6 @@ const proxyResponse = (statusCode, headers, body) => {
 };
 
 export const respondOK = (callback) => {
-    console.log('ok');
     callback(null, proxyResponse(200, {}, {}));
 };
 

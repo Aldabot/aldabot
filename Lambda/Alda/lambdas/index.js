@@ -117,7 +117,6 @@ export function handler(event, context: any, callback): void {
             });
             break;
         case "POSTBACK":
-            console.log("postback");
             respondToPostback(pool, state.messenger.event).then(() => {
                 respondOK(callback);
             }).catch((error) => {

@@ -34,7 +34,6 @@ export const eventType = (event) => {
 };
 
 export const respondToMessage = (psid, message, pool, event) => {
-    console.log(message);
     return getIntent(psid, message).then((response) => {
         if (response.hasMessages) {
             let messages = response.fulfillment.messages;
