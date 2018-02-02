@@ -1,10 +1,6 @@
 require('dotenv').config(); // process.env.<WHATEVER>
 import request from 'request';
 import {
-    getIntent,
-    dialogflowRedirectMessages
-} from '../lib/dialogflow';
-import {
     respondOK,
     respondError
 } from '../lib/lambda';
@@ -19,6 +15,7 @@ import {
 } from '../lib/predefinedMessages.js';
 import {
     eventType,
+    respondToMessage,
     respondToPostback
 } from '../lib/messenger/webhookEvents.js';
 import {
@@ -86,18 +83,10 @@ export function handler(event, context: any, callback): void {
         };
         switch(eventType(state.messenger.event)) {
         case "MESSAGE":
-            getIntent(state.messenger.psid, getMessageText(state.messenger.event)).then((response) => {
-                if (response.hasMessages) {
-                    console.log(response.hasMessages);
-                    let messages = response.fulfillment.messages;
-                    return dialogflowRedirectMessages(state.messenger.psid, messages);
-                }
-                let intent = response.metadata.intentName;
-                return respondIntent(pool, state.messenger.psid, intent);
-            }).then(() => {
+            respondToMessage(state.messenger.psid, getMessageText(state.messenger.event), pool, state.messenger.event).then(() => {
                 respondOK(callback);
             }).catch((error) => {
-                console.log(error);
+                console.error(error);
                 return respondTextMessage(state.messenger.psid, "Uups, algo ha ido mal.").then(() => {
                     respondOK(callback);
                 });
@@ -128,8 +117,8 @@ export function handler(event, context: any, callback): void {
             });
             break;
         case "POSTBACK":
-            respondToPostback(pool, state.messenger.event, callback).then(() => {
-                console.log('ok');
+            console.log("postback");
+            respondToPostback(pool, state.messenger.event).then(() => {
                 respondOK(callback);
             }).catch((error) => {
                 console.log(error);

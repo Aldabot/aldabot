@@ -2,7 +2,8 @@ import {
     respondIntent
 } from '../intents.js';
 import {
-    getIntent
+    getIntent,
+    dialogflowRedirectMessages
 } from '../dialogflow.js';
 import {
     respondTextMessage,
@@ -32,32 +33,51 @@ export const eventType = (event) => {
     return 'UNKOWN';
 };
 
+export const respondToMessage = (psid, message, pool, event) => {
+    console.log(message);
+    return getIntent(psid, message).then((response) => {
+        if (response.hasMessages) {
+            let messages = response.fulfillment.messages;
+            return dialogflowRedirectMessages(psid, messages);
+        }
+        let intent = response.metadata.intentName;
+        return respondIntent(pool, psid, intent);
+    });
+};
+
 export const respondToPostback = (pool, event, callback) => {
     const psid = event.sender.id;
+    const title = event.postback.title;
     const payload = event.postback.payload;
 
-    switch(payload) {
-    case "FACEBOOK_WELCOME":
-        return createPerson(pool, {psid}).then(() => {
-            console.info("New person created");
-            return sendWelcomeMessages(psid);
-        }).catch((error) => {
-            if(error.code == "ER_DUP_ENTRY") {
-                console.error("MySQL: duplicated entry!");
 
-            } else {
-                console.error(`Error: while creating new Person: ${error.code}`);
-            }
-            return sendWelcomeMessages(psid);
-        });
-        break;
-    case "QUERY_BALANCE":
-        return respondIntent(pool, psid, "alda.query.balance");
-        break;
-    case "QUERY_EXPENSES":
-        return respondIntent(pool, psid, "alda.query.expenses");
-        break;
-    default:
-        return respondTextMessage(psid, 'Que decias?');
+    if (title == "Seleccionar") {
+        // handle as message with text=payload
+        return respondToMessage(psid, title, pool, event);
+    } else {
+        switch(payload) {
+        case "FACEBOOK_WELCOME":
+            return createPerson(pool, {psid}).then(() => {
+                console.info("New person created");
+                return sendWelcomeMessages(psid);
+            }).catch((error) => {
+                if(error.code == "ER_DUP_ENTRY") {
+                    console.error("MySQL: duplicated entry!");
+
+                } else {
+                    console.error(`Error: while creating new Person: ${error.code}`);
+                }
+                return sendWelcomeMessages(psid);
+            });
+            break;
+        case "QUERY_BALANCE":
+            return respondIntent(pool, psid, "alda.query.balance");
+            break;
+        case "QUERY_EXPENSES":
+            return respondIntent(pool, psid, "alda.query.expenses");
+            break;
+        default:
+            return respondTextMessage(psid, 'Que decias?');
+        }
     }
 }

@@ -48,7 +48,6 @@ export const dialogflowRedirectMessages = (psid, messages) => {
     for (let i = 0; i < messages.length; i++) {
         switch(messages[i].type) {
         case 1: // Card
-            console.log(JSON.stringify(messages[i], null, 4));
             // create whole carousel ( get all following cards and join elements together)
             while (messages[i] && messages[i].type == 1) {
                 let buttons = [];
@@ -72,9 +71,7 @@ export const dialogflowRedirectMessages = (psid, messages) => {
             break;
         default:
             if(messages[i] && messages[i].speech) {
-                promises.push( () => {
-                    return respondTextMessage(psid, messages[i].speech);
-                } );
+                promises.push( () => {return respondTextMessage(psid, messages[i].speech);} );
             } else {
                 console.error("Dialogflow Redirect messages TYPE not defined");
             }

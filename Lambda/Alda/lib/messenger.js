@@ -41,7 +41,7 @@ const api = create({
 });
 
 export const send = (message) => {
-    // console.log(JSON.stringify(message, null, 4));
+    console.log(JSON.stringify(message, null, 4));
     return api.post('/', message).then((result) => {
         if(result && result.data && result.data.error) {
             console.log(result.data.error);
