@@ -10,10 +10,17 @@ import {
     getMessageText
 } from '../messenger.js';
 import {
-    createPerson
+    createPerson,
+    updatePerson
 } from '../database.js';
 import {
     sendWelcomeMessages
+} from '../predefinedMessages.js';
+import {
+    createCustomer
+} from '../saltedge.js';
+import {
+    sendFirstLoginMessages
 } from '../predefinedMessages.js';
 
 // Returns 'MESSAGE', 'QUICK_REPLY', 'OPTIN' or 'POSTBACK' else 'UNKOWN'
@@ -43,13 +50,13 @@ export const respondToMessage = (psid, message, pool, event) => {
     });
 };
 
-export const respondToPostback = (pool, event, callback) => {
+export const respondToPostback = (pool, event) => {
     const psid = event.sender.id;
     const title = event.postback.title;
     const payload = event.postback.payload;
 
 
-    if (title == "Seleccionar") {
+    if (payload != "FACEBOOK_WELCOME" && payload != "QUERY_BALANCE" && payload != "QUERY_EXPENSES") {
         // handle as message with text=payload
         return respondToMessage(psid, payload, pool, event);
     } else {
@@ -78,4 +85,29 @@ export const respondToPostback = (pool, event, callback) => {
             return respondTextMessage(psid, 'Que decias?');
         }
     }
-}
+};
+
+export const respondToQuickReply = (psid, pool, event) => {
+    const payload = event.message.quick_reply.payload;
+    const text = event.message.text;
+
+    if (payload != "LOGIN_START") {
+        return respondToMessage(psid, text, pool, event);
+    } else {
+        return createCustomer(psid).then((response) => {
+            if(response.data.error_class) {
+                console.info(`Saltedge: ${response.data.error_class}`);
+                // delete customer in saltedge, create new one and updatePerson
+            } else if(response.data.data.id) {
+                let customerId = response.data.data.id;
+                return updatePerson(
+                    pool,
+                    {psid: psid, customer_id: customerId}
+                );
+            }
+            return Promise.resolve();
+        }).then(() => {
+            return sendFirstLoginMessages(psid);
+        });
+    }
+};

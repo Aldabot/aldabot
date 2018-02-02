@@ -10,13 +10,13 @@ import {
     getMessageText
 } from '../lib/messenger.js';
 import {
-    sendWelcomeMessages,
-    sendFirstLoginMessages
+    sendWelcomeMessages
 } from '../lib/predefinedMessages.js';
 import {
     eventType,
     respondToMessage,
-    respondToPostback
+    respondToPostback,
+    respondToQuickReply
 } from '../lib/messenger/webhookEvents.js';
 import {
     createPerson,
@@ -27,7 +27,6 @@ import {
 import mysql from 'mysql';
 import Promise from 'bluebird';
 import {
-    createCustomer,
     deleteCustomer
 } from '../lib/saltedge.js';
 import {
@@ -86,41 +85,23 @@ export function handler(event, context: any, callback): void {
             respondToMessage(state.messenger.psid, getMessageText(state.messenger.event), pool, state.messenger.event).then(() => {
                 respondOK(callback);
             }).catch((error) => {
-                console.error(error);
                 return respondTextMessage(state.messenger.psid, "Uups, algo ha ido mal.").then(() => {
                     respondOK(callback);
                 });
             });
             break;
         case "QUICK_REPLY":
-            createCustomer(state.messenger.psid).then((response) => {
-                if(response.data.error_class) {
-                    console.info(`Saltedge: ${response.data.error_class}`);
-                    // delete customer in saltedge, create new one and updatePerson
-                } else if(response.data.data.id) {
-                    let customerId = response.data.data.id;
-                    return updatePerson(
-                        pool,
-                        {psid: state.messenger.psid, customer_id: customerId}
-                    );
-                }
-                return Promise.resolve();
-            }).then(() => {
-                return sendFirstLoginMessages(state.messenger.psid).then(() => {
-                    respondOK(callback);
-                });
+            respondToQuickReply(state.messenger.psid, pool, state.messenger.event).then(() => {
+                respondOK(callback);
             }).catch((error) => {
                 console.error(`MySQL: ${error.code}`);
-                return sendFirstLoginMessages(state.messenger.psid).then(() => {
-                    respondOK(callback);
-                });
+                respondOK(callback);
             });
             break;
         case "POSTBACK":
             respondToPostback(pool, state.messenger.event).then(() => {
                 respondOK(callback);
             }).catch((error) => {
-                console.log(error);
                 respondTextMessage(state.messenger.psid, 'Ups algo ha ido mal.');
                 respondOK(callback);
             });

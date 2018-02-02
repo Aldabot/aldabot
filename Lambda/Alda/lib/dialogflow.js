@@ -3,8 +3,10 @@ import {
     respondTextMessage,
     respondImageMessage,
     respondGenericTemplateMessage,
+    respondTextQuickReplies,
     createWebUrlButton,
     createPostbackButton,
+    createTextQuickReply,
     createElement
 } from "./messenger.js";
 import Promise from "bluebird";
@@ -44,7 +46,6 @@ export const getIntent = (psid, message) => {
 export const dialogflowRedirectMessages = (psid, messages) => {
     let promises = [];
     let elements = [];
-    console.log(JSON.stringify(messages, null, 4));
     for (let i = 0; i < messages.length; i++) {
         switch(messages[i].type) {
         case 1: // Card
@@ -67,6 +68,12 @@ export const dialogflowRedirectMessages = (psid, messages) => {
             }
             promises.push( () => {return respondGenericTemplateMessage(psid, elements);} );
             break;
+        case 2: // Quick Replies
+            let quickReplies = [];
+            for (let reply of messages[i].replies) {
+                quickReplies.push(createTextQuickReply(reply, "QUICK_REPLY"));
+            }
+            promises.push( () => { return respondTextQuickReplies(psid, messages[i].title, quickReplies);} );
         case 3: // Image
             promises.push( () => {return respondImageMessage(psid, messages[i].imageUrl);} );
             break;

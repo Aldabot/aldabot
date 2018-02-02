@@ -41,7 +41,6 @@ const api = create({
 });
 
 export const send = (message) => {
-    console.log(JSON.stringify(message, null, 4));
     return api.post('/', message).then((result) => {
         if(result && result.data && result.data.error) {
             console.log(result.data.error);
@@ -98,7 +97,7 @@ const createAttachmentMessage = (psid, attachment, messagingType) => {
         }
     };
 };
-const createTextQuickReply = (title, payload) => {
+export const createTextQuickReply = (title, payload) => {
     return {
         content_type: "text",
         title,
@@ -192,7 +191,6 @@ export const sendAttachementMessage = (psid, attachment, messagingType) => {
 export const respondAttachmentMessage = (psid, attachment) => {
     return sendAttachementMessage(psid, attachment, "RESPONSE");
 };
-
 export const sendTextQuickReplies = (psid: string, text: string, quickReplies: [QuickReply], messagingType: string) => {
     let quickReplyMessage = createTextMessage(psid, text, messagingType);
     quickReplyMessage.message.quick_replies = quickReplies.map((quickReply) => {
