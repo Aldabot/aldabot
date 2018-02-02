@@ -42,7 +42,7 @@ const api = create({
 
 export const send = (message) => {
     return api.post('/', message).then((result) => {
-        if(result && result.data && result.error) {
+        if(result && result.data && result.data.error) {
             console.log(result.data.error);
         }
         return result;
