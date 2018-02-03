@@ -21,7 +21,7 @@ const query = (pool, sql, values) => {
 ////////////////////////////////////////////////////////////////
 
 export const createPerson = (pool, dbPerson) => {
-    const sql = `INSERT INTO persons SET ?`;
+    const sql = `INSERT IGNORE INTO persons SET ?`;
     return query(pool, sql, dbPerson);
 };
 export const retrievePerson = (pool, psid) => {

@@ -68,7 +68,6 @@ export const respondToPostback = (pool, event) => {
             }).catch((error) => {
                 if(error.code == "ER_DUP_ENTRY") {
                     console.error("MySQL: duplicated entry!");
-
                 } else {
                     console.error(`Error: while creating new Person: ${error.code}`);
                 }
@@ -91,7 +90,8 @@ export const respondToQuickReply = (psid, pool, event) => {
     const payload = event.message.quick_reply.payload;
     const text = event.message.text;
 
-    if (payload != "LOGIN_START") {
+    console.log(payload);
+    if (payload != "START_LOGIN") {
         return respondToMessage(psid, text, pool, event);
     } else {
         return createCustomer(psid).then((response) => {
