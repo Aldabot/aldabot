@@ -220,3 +220,38 @@ export const respondGenericTemplateMessage = (psid, elements) => {
 export const getMessageText = (event) => {
     return event.message.text;
 };
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Webhook Init
+////////////////////////////////////////////////////////////////////////////////
+
+export const messengerGET = (queryStringParameters, callback) => {
+  // curl -X GET "https://9f532725.ngrok.io/webhook?hub.verify_token=aldaHURN&hub.challenge=CHALLENGE_ACCEPTED&hub.mode=subscribe"
+  let VERIFY_TOKEN = "aldaHURN";
+
+  let mode = queryStringParameters['hub.mode'];
+  let token = queryStringParameters['hub.verify_token'];
+  let challenge = queryStringParameters['hub.challenge'];
+
+  // Checks if a token and mode is in the query string of the request
+  if (mode && token) {
+    // Checks the mode and token sent is correct
+    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+      // Responds with the challenged token from the request
+      console.log('WEBHOOK_VERIFIED');
+      callback(null, {
+        statusCode: 200,
+        headers: {
+            "x-custom-header" : "my custom header value"
+        },
+        body: challenge
+      })
+    } else {
+      // Respons with '403 Forbidden' if verify tokens do not match
+      console.error('Facebook Webhook failed');
+      respond(403, `Forbidden`, callback);
+    }
+  }
+  respond(400, '', callback);
+}
