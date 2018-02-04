@@ -36,7 +36,7 @@ export const updatePerson = (pool, dbPerson) => {
     return retrievePerson(pool, dbPerson.psid).then((retrievedPerson) => {
         const mergedPerson = { ...retrievedPerson, ...dbPerson }; // overwrite all given person values
         const values = [mergedPerson, mergedPerson.psid];
-        const sql = 'UPDATE persons SET ? WHERE psid = ?';
+        const sql = "UPDATE persons SET ? WHERE psid = ?";
         return query(pool, sql, values);
     });
 };

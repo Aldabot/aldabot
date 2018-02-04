@@ -35,14 +35,14 @@ export const sendWelcomeMessages = (psid) => {
 export const sendFirstLoginMessages = (psid) => {
     let promises = [
         () => {
-            respondTextMessage(
+            return respondTextMessage(
                 psid,
                 '¡Guay! Para comenzar su viaje hacia una mejor administración del dinero, necesito vincularme con su banca en línea.',
                 'RESPONSE'
             );
         },
         () => {
-            respondWebUrlButtons(
+            return respondWebUrlButtons(
                 psid,
                 "Sus detalles están protegidos por seguridad de nivel bancario. Están completamente protegidos y son 100% seguros.",
                 [
@@ -57,4 +57,9 @@ export const sendFirstLoginMessages = (psid) => {
     return Promise.each(promises, (promise) => {
         return promise();
     });
+};
+
+
+export const sendSomethingWrongMessage = (psid) => {
+    return respondTextMessage(psid, "Ups, algo ha ido mal.");
 };

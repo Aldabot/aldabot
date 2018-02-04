@@ -11,7 +11,9 @@ import {
     getMessageText
 } from '../lib/messenger.js';
 import {
-    sendWelcomeMessages
+    sendWelcomeMessages,
+    sendFirstLoginMessages,
+    sendSomethingWrongMessage
 } from '../lib/predefinedMessages.js';
 import {
     eventType,
@@ -93,10 +95,13 @@ export function handler(event, context: any, callback): void {
             break;
         case "QUICK_REPLY":
             respondToQuickReply(state.messenger.psid, pool, state.messenger.event).then(() => {
+                return sendFirstLoginMessages(state.messenger.psid);
+            }).then(() => {
                 respondOK(callback);
             }).catch((error) => {
-                console.error(`MySQL: ${error.code}`);
-                respondOK(callback);
+                sendSomethingWrongMessage(state.messenger.psid).then(() => {
+                    respondOK(callback);
+                });
             });
             break;
         case "POSTBACK":

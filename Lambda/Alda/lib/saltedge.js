@@ -1,4 +1,8 @@
 import { create } from 'apisauce';
+import {
+    retrievePerson,
+    updatePerson
+} from './database.js';
 
 const headers = {
     'Accept': 'application/json',
@@ -13,7 +17,6 @@ const api = create({
     headers
 });
 
-
 export const createCustomer = (identifier) => {
     const params = {
         data: {
@@ -25,4 +28,29 @@ export const createCustomer = (identifier) => {
 
 export const deleteCustomer = (customerId) => {
     return api.delete(`/customers/${customerId}`);
-}
+};
+
+export const createAndLinkSaltedgeCustomer = (pool, psid) => {
+    return createCustomer(psid).then((response) => {
+        if(response.ok) {
+            let customerId = response.data.data.id;
+            let dbPerson = {
+                psid,
+                customer_id: customerId
+            };
+            return updatePerson(pool, dbPerson);
+        } else {
+            if(response.data.error_class) {
+                if(response.data.error_class == "DuplicatedCustomer") {
+                    // Customer already exists within SaltEdge
+                    // => do nothing! should be linked in Mysql
+                    return Promise.resolve(true);
+                } else {
+                    throw "Saltedge Create Customer failed?";
+                }
+            } else {
+                throw "Saltedge Server Error";
+            }
+        }
+    });
+};

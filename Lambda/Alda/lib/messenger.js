@@ -43,11 +43,10 @@ const api = create({
 export const send = (message) => {
     return api.post('/', message).then((result) => {
         if(result && result.data && result.data.error) {
-            console.log(result.data.error);
+            throw result.data.error;
         }
         return result;
     }).catch((error) => {
-        console.error(JSON.stringify(error, null, 4));
         throw error;
     });
 };

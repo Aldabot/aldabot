@@ -17,7 +17,8 @@ import {
     sendWelcomeMessages
 } from '../predefinedMessages.js';
 import {
-    createCustomer
+    createCustomer,
+    createAndLinkSaltedgeCustomer,
 } from '../saltedge.js';
 import {
     sendFirstLoginMessages
@@ -65,13 +66,6 @@ export const respondToPostback = (pool, event) => {
             return createPerson(pool, {psid}).then(() => {
                 console.info("New person created");
                 return sendWelcomeMessages(psid);
-            }).catch((error) => {
-                if(error.code == "ER_DUP_ENTRY") {
-                    console.error("MySQL: duplicated entry!");
-                } else {
-                    console.error(`Error: while creating new Person: ${error.code}`);
-                }
-                return sendWelcomeMessages(psid);
             });
             break;
         case "QUERY_BALANCE":
@@ -90,24 +84,9 @@ export const respondToQuickReply = (psid, pool, event) => {
     const payload = event.message.quick_reply.payload;
     const text = event.message.text;
 
-    console.log(payload);
     if (payload != "START_LOGIN") {
         return respondToMessage(psid, text, pool, event);
     } else {
-        return createCustomer(psid).then((response) => {
-            if(response.data.error_class) {
-                console.info(`Saltedge: ${response.data.error_class}`);
-                // delete customer in saltedge, create new one and updatePerson
-            } else if(response.data.data.id) {
-                let customerId = response.data.data.id;
-                return updatePerson(
-                    pool,
-                    {psid: psid, customer_id: customerId}
-                );
-            }
-            return Promise.resolve();
-        }).then(() => {
-            return sendFirstLoginMessages(psid);
-        });
+        return createAndLinkSaltedgeCustomer(pool, psid);
     }
 };
