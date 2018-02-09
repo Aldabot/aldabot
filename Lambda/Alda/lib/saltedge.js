@@ -1,7 +1,8 @@
 import { create } from 'apisauce';
 import {
     retrievePerson,
-    updatePerson
+    updatePerson,
+    createPerson
 } from './database.js';
 
 const headers = {
@@ -38,7 +39,7 @@ export const createAndLinkSaltedgeCustomer = (pool, psid) => {
                 psid,
                 customer_id: customerId
             };
-            return updatePerson(pool, dbPerson);
+            return createPerson(pool, dbPerson);
         } else {
             if(response.data.error_class) {
                 if(response.data.error_class == "DuplicatedCustomer") {

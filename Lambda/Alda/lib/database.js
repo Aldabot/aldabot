@@ -10,8 +10,24 @@ const getConnection = (pool) => {
 };
 
 const query = (pool, sql, values) => {
+    console.log("query");
     return Promise.using(getConnection(pool), (connection) => {
         return connection.queryAsync(sql, values);
+    });
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// CHECK IF PSID ENTRY EXISTS OTHERWAYS INSERT
+////////////////////////////////////////////////////////////////////////////////
+
+export const registerPersonIfNotExists = async (pool, psid) => {
+    let sql = "INSERT IGNORE INTO persons SET ? ";
+    return await query(pool, sql, {psid}).then(() => {
+        console.log("true");
+        return true;
+    }).catch((error) => {
+        return false;
     });
 };
 

@@ -14,4 +14,6 @@ export const respondError = (callback) => {
     callback(null, proxyResponse(500, {}, {}));
 };
 
-
+export const respondForbidden = (callback) => {
+    callback(null, proxyResponse(400, {}, {}));
+};

@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import request from 'request';
 import Promise from 'bluebird';
 import { create } from 'apisauce';
+import { respondForbidden } from './lambda.js';
 dotenv.config();
 
 // Flow types
@@ -245,12 +246,12 @@ export const messengerGET = (queryStringParameters, callback) => {
             "x-custom-header" : "my custom header value"
         },
         body: challenge
-      })
+      });
     } else {
       // Respons with '403 Forbidden' if verify tokens do not match
       console.error('Facebook Webhook failed');
-      respond(403, `Forbidden`, callback);
+      respondForbidden(callback);
     }
   }
-  respond(400, '', callback);
+  respondForbidden(callback);
 }

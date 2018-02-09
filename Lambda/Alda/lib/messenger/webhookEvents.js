@@ -56,15 +56,13 @@ export const respondToPostback = (pool, event) => {
     const title = event.postback.title;
     const payload = event.postback.payload;
 
-
     if (payload != "FACEBOOK_WELCOME" && payload != "QUERY_BALANCE" && payload != "QUERY_EXPENSES") {
         // handle as message with text=payload
         return respondToMessage(psid, payload, pool, event);
     } else {
         switch(payload) {
         case "FACEBOOK_WELCOME":
-            return createPerson(pool, {psid}).then(() => {
-                console.info("New person created");
+            return createAndLinkSaltedgeCustomer(pool, psid).then(() => {
                 return sendWelcomeMessages(psid);
             });
             break;

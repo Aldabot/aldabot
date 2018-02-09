@@ -36,6 +36,13 @@ function textMessage(text) {
         text
     };
 }
+function postback(text, payload) {
+    return  {
+        "mid":"mid.$cAAA51ZR31vhnEKsrHlg32Xixeo7y",
+        text,
+        payload
+    };
+}
 
 function quickReply(text, payload) {
     return {
@@ -72,6 +79,9 @@ function webhookEvent(eventType, text, payload) {
     case "messages":
         eventFormat.entry[0].messaging[0].message = textMessage(text);
         break;
+    case "postback":
+        eventFormat.entry[0].messaging[0].postback = postback(text, payload);
+        break;
     case "quickReply":
         eventFormat.entry[0].messaging[0].message = quickReply(text, payload);
         break;
@@ -84,7 +94,8 @@ function webhookEvent(eventType, text, payload) {
 // const messengerBody = JSON.stringify(webhookEvent("messages", "gastos"), null, 4);
 // const messengerBody = JSON.stringify(webhookEvent("messages", "gracias"), null, 4);
 // const messengerBody = JSON.stringify(webhookEvent("messages", "invertir"), null, 4);
-const messengerBody = JSON.stringify(webhookEvent("quickReply", "Empecemos", "START_LOGIN"), null, 4);
+// const messengerBody = JSON.stringify(webhookEvent("quickReply", "Empecemos", "START_LOGIN"), null, 4);
+const messengerBody = JSON.stringify(webhookEvent("postback", "Welcome", "FACEBOOK_WELCOME"), null, 4);
 // console.log(messengerBody);
 const event = {
     httpMethod: "POST",

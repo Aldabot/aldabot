@@ -26,6 +26,7 @@ import {
     retrievePerson,
     updatePerson,
     retrieveAccounts,
+    registerPersonIfNotExists
 } from '../lib/database.js';
 import mysql from 'mysql';
 import Promise from 'bluebird';
@@ -83,6 +84,7 @@ export function handler(event, context: any, callback): void {
                 event: body.entry[0].messaging[0]
             }
         };
+
         switch(eventType(state.messenger.event)) {
         case "MESSAGE":
             respondToMessage(state.messenger.psid, getMessageText(state.messenger.event), pool, state.messenger.event).then(() => {
