@@ -25,8 +25,7 @@ import {
     createPerson,
     retrievePerson,
     updatePerson,
-    retrieveAccounts,
-    registerPersonIfNotExists
+    retrieveAccounts
 } from '../lib/database.js';
 import mysql from 'mysql';
 import Promise from 'bluebird';

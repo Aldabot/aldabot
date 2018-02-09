@@ -33,6 +33,7 @@ const newPerson = (pool, psid) => {
     });
 };
 
+
 // Returns 'MESSAGE', 'QUICK_REPLY', 'OPTIN' or 'POSTBACK' else 'UNKOWN'
 export const eventType = (event) => {
     if(event.message) {
