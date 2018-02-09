@@ -47,6 +47,41 @@ export const sendFirstLoginMessages = (psid) => {
                 "Sus detalles están protegidos por seguridad de nivel bancario. Están completamente protegidos y son 100% seguros.",
                 [
                     {
+                        title: "FAQ",
+                        url: "https://aldabot.es/#/faq"
+                    },
+                    {
+                        title: "Claro 🔒",
+                        url: "https://aldabot.es/#/registrate"
+                    }
+                ]
+            );
+        }
+    ];
+    return Promise.each(promises, (promise) => {
+        return promise();
+    });
+};
+
+export const sendYouHaveToLoginMessages = (psid) => {
+    let promises = [
+        () => {
+            return respondTextMessage(
+                psid,
+                'Para responderte necesito vincularme con su banca en línea.',
+                'RESPONSE'
+            );
+        },
+        () => {
+            return respondWebUrlButtons(
+                psid,
+                "Sus detalles están protegidos por seguridad de nivel bancario. Están completamente protegidos y son 100% seguros.",
+                [
+                    {
+                        title: "FAQ",
+                        url: "https://aldabot.es/#/faq"
+                    },
+                    {
                         title: "Claro 🔒",
                         url: "https://aldabot.es/#/registrate"
                     }

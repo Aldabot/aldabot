@@ -18,6 +18,7 @@ const api = create({
     headers
 });
 
+
 export const createCustomer = (identifier) => {
     const params = {
         data: {
@@ -26,10 +27,23 @@ export const createCustomer = (identifier) => {
     };
     return api.post('/customers', params);
 };
-
 export const deleteCustomer = (customerId) => {
     return api.delete(`/customers/${customerId}`);
 };
+
+export const isLoginExistent = (pool, psid) => {
+    return retrievePerson(pool, psid).then((person) => {
+        return api.get(`/logins?customer_id=${person.customer_id}`);
+    }).then((response) => {
+        if(response.ok) {
+            return (response.data.data.lenth > 0) ? true : false;
+        } else {
+            throw "Saltedge isLoginExistent error";
+        }
+    });
+};
+
+
 
 export const createAndLinkSaltedgeCustomer = (pool, psid) => {
     return createCustomer(psid).then((response) => {
@@ -42,13 +56,7 @@ export const createAndLinkSaltedgeCustomer = (pool, psid) => {
             return createPerson(pool, dbPerson);
         } else {
             if(response.data.error_class) {
-                if(response.data.error_class == "DuplicatedCustomer") {
-                    // Customer already exists within SaltEdge
-                    // => do nothing! should be linked in Mysql
-                    return Promise.resolve(true);
-                } else {
-                    throw "Saltedge Create Customer failed?";
-                }
+                throw response.data.error_class;
             } else {
                 throw "Saltedge Server Error";
             }

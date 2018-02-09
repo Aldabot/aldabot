@@ -11,7 +11,8 @@ import {
 } from '../messenger.js';
 import {
     createPerson,
-    updatePerson
+    updatePerson,
+    isPersonExisting
 } from '../database.js';
 import {
     sendWelcomeMessages
@@ -19,10 +20,18 @@ import {
 import {
     createCustomer,
     createAndLinkSaltedgeCustomer,
+    isLoginExistent
 } from '../saltedge.js';
 import {
-    sendFirstLoginMessages
+    sendFirstLoginMessages,
+    sendYouHaveToLoginMessages
 } from '../predefinedMessages.js';
+
+const newPerson = (pool, psid) => {
+    return createAndLinkSaltedgeCustomer(pool, psid).then(() => {
+        return sendWelcomeMessages(psid);
+    });
+};
 
 // Returns 'MESSAGE', 'QUICK_REPLY', 'OPTIN' or 'POSTBACK' else 'UNKOWN'
 export const eventType = (event) => {
@@ -41,13 +50,25 @@ export const eventType = (event) => {
 };
 
 export const respondToMessage = (psid, message, pool, event) => {
-    return getIntent(psid, message).then((response) => {
-        if (response.hasMessages) {
-            let messages = response.fulfillment.messages;
-            return dialogflowRedirectMessages(psid, messages);
+    return isPersonExisting(pool, psid).then((isPersonExisting) => {
+        if(isPersonExisting) {
+            return isLoginExistent(pool, psid).then((isLoginExistent) => {
+                if (isLoginExistent) {
+                    return getIntent(psid, message).then((response) => {
+                        if (response.hasMessages) {
+                            let messages = response.fulfillment.messages;
+                            return dialogflowRedirectMessages(psid, messages);
+                        }
+                        let intent = response.metadata.intentName;
+                        return respondIntent(pool, psid, intent);
+                    });
+                } else {
+                    return sendYouHaveToLoginMessages(psid);
+                }
+            });
+        } else {
+            return newPerson(pool, psid);
         }
-        let intent = response.metadata.intentName;
-        return respondIntent(pool, psid, intent);
     });
 };
 
@@ -62,9 +83,7 @@ export const respondToPostback = (pool, event) => {
     } else {
         switch(payload) {
         case "FACEBOOK_WELCOME":
-            return createAndLinkSaltedgeCustomer(pool, psid).then(() => {
-                return sendWelcomeMessages(psid);
-            });
+            return newPerson();
             break;
         case "QUERY_BALANCE":
             return respondIntent(pool, psid, "alda.query.balance");

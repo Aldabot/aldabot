@@ -90,12 +90,12 @@ function webhookEvent(eventType, text, payload) {
     return eventFormat;
 };
 
-// const messengerBody = JSON.stringify(webhookEvent("messages", "saldo"), null, 4);
+const messengerBody = JSON.stringify(webhookEvent("messages", "saldo"), null, 4);
 // const messengerBody = JSON.stringify(webhookEvent("messages", "gastos"), null, 4);
 // const messengerBody = JSON.stringify(webhookEvent("messages", "gracias"), null, 4);
 // const messengerBody = JSON.stringify(webhookEvent("messages", "invertir"), null, 4);
 // const messengerBody = JSON.stringify(webhookEvent("quickReply", "Empecemos", "START_LOGIN"), null, 4);
-const messengerBody = JSON.stringify(webhookEvent("postback", "Welcome", "FACEBOOK_WELCOME"), null, 4);
+// const messengerBody = JSON.stringify(webhookEvent("postback", "Welcome", "FACEBOOK_WELCOME"), null, 4);
 // console.log(messengerBody);
 const event = {
     httpMethod: "POST",

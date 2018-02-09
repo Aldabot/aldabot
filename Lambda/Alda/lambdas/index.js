@@ -90,6 +90,7 @@ export function handler(event, context: any, callback): void {
             respondToMessage(state.messenger.psid, getMessageText(state.messenger.event), pool, state.messenger.event).then(() => {
                 respondOK(callback);
             }).catch((error) => {
+                console.log(JSON.stringify(error, null, 4));
                 return respondTextMessage(state.messenger.psid, "Uups, algo ha ido mal.").then(() => {
                     respondOK(callback);
                 });

@@ -1,4 +1,3 @@
-import Person from './person';
 import Promise from 'bluebird';
 Promise.promisifyAll(require("mysql/lib/Connection").prototype);
 Promise.promisifyAll(require("mysql/lib/Pool").prototype);
@@ -10,7 +9,6 @@ const getConnection = (pool) => {
 };
 
 const query = (pool, sql, values) => {
-    console.log("query");
     return Promise.using(getConnection(pool), (connection) => {
         return connection.queryAsync(sql, values);
     });
@@ -54,6 +52,15 @@ export const updatePerson = (pool, dbPerson) => {
         const values = [mergedPerson, mergedPerson.psid];
         const sql = "UPDATE persons SET ? WHERE psid = ?";
         return query(pool, sql, values);
+    });
+};
+export const isPersonExisting = (pool, psid) => {
+    return retrievePerson(pool, psid).then((person) => {
+        if (person) {
+            return true;
+        } else {
+            return false;
+        };
     });
 };
 
