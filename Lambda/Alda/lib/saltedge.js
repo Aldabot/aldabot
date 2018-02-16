@@ -19,9 +19,10 @@ const api = create({
 });
 
 
-export const createCustomer = (identifier) => {
+export const createSaltedgeCustomer = (identifier) => {
     const params = {
-        data: {
+        data:
+        {
             identifier
         }
     };
@@ -46,7 +47,8 @@ export const isLoginExistent = (pool, psid) => {
 
 
 export const createAndLinkSaltedgeCustomer = (pool, psid) => {
-    return createCustomer(psid).then((response) => {
+    return createSaltedgeCustomer(psid).then((response) => {
+        console.log("joho");
         if(response.ok) {
             let customerId = response.data.data.id;
             let dbPerson = {
@@ -56,6 +58,11 @@ export const createAndLinkSaltedgeCustomer = (pool, psid) => {
             return createPerson(pool, dbPerson);
         } else {
             if(response.data.error_class) {
+                if(response.data.error_class != "DuplicatedCustomer") {
+                    console.log(response.data.error_class);
+                } else {
+                    return true;
+                }
                 throw response.data.error_class;
             } else {
                 throw "Saltedge Server Error";

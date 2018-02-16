@@ -48,11 +48,11 @@ export const sendFirstLoginMessages = (psid) => {
                 [
                     {
                         title: "FAQ",
-                        url: "https://aldabot.es/#/faq"
+                        url: "https://aldabot.es/faq"
                     },
                     {
                         title: "Claro 🔒",
-                        url: "https://aldabot.es/#/registrate"
+                        url: "https://aldabot.es/registrate"
                     }
                 ]
             );

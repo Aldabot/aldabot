@@ -28,8 +28,10 @@ import {
 } from '../predefinedMessages.js';
 
 const newPerson = (pool, psid) => {
-    return createAndLinkSaltedgeCustomer(pool, psid).then(() => {
+    return createAndLinkSaltedgeCustomer(pool, psid).then((response) => {
         return sendWelcomeMessages(psid);
+    }).catch((error) => {
+        throw error;
     });
 };
 
@@ -84,7 +86,7 @@ export const respondToPostback = (pool, event) => {
     } else {
         switch(payload) {
         case "FACEBOOK_WELCOME":
-            return newPerson();
+            return newPerson(pool, psid);
             break;
         case "QUERY_BALANCE":
             return respondIntent(pool, psid, "alda.query.balance");
