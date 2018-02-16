@@ -48,7 +48,6 @@ export const isLoginExistent = (pool, psid) => {
 
 export const createAndLinkSaltedgeCustomer = (pool, psid) => {
     return createSaltedgeCustomer(psid).then((response) => {
-        console.log("joho");
         if(response.ok) {
             let customerId = response.data.data.id;
             let dbPerson = {
@@ -57,9 +56,10 @@ export const createAndLinkSaltedgeCustomer = (pool, psid) => {
             };
             return createPerson(pool, dbPerson);
         } else {
+            // if saltedge_error anything different then duplicated throw
             if(response.data.error_class) {
                 if(response.data.error_class != "DuplicatedCustomer") {
-                    console.log(response.data.error_class);
+                    throw response.data.error_class;
                 } else {
                     return true;
                 }

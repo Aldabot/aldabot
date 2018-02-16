@@ -96,7 +96,6 @@ export function handler(event, context: any, callback): void {
             });
             break;
         case "QUICK_REPLY":
-            console.log("QUICK REPLY");
             respondToQuickReply(state.messenger.psid, pool, state.messenger.event).then(() => {
                 return sendFirstLoginMessages(state.messenger.psid);
             }).then(() => {
@@ -109,7 +108,6 @@ export function handler(event, context: any, callback): void {
             });
             break;
         case "POSTBACK":
-            console.log("POSTBACK");
             respondToPostback(pool, state.messenger.event).then(() => {
                 respondOK(callback);
             }).catch((error) => {
