@@ -37,10 +37,12 @@ export const isLoginExistent = (pool, psid) => {
         return api.get(`/logins?customer_id=${person.customer_id}`);
     }).then((response) => {
         if(response.ok) {
-            return (response.data.data.lenth > 0) ? true : false;
+            return (response.data.data.length > 0) ? true : false;
         } else {
             throw "Saltedge isLoginExistent error";
         }
+    }).catch((error) => {
+        throw error;
     });
 };
 
