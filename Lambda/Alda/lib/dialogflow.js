@@ -74,6 +74,7 @@ export const dialogflowRedirectMessages = (psid, messages) => {
                 quickReplies.push(createTextQuickReply(reply, "QUICK_REPLY"));
             }
             promises.push( () => { return respondTextQuickReplies(psid, messages[i].title, quickReplies);} );
+            break;
         case 3: // Image
             promises.push( () => {return respondImageMessage(psid, messages[i].imageUrl);} );
             break;

@@ -59,7 +59,6 @@ export const respondToMessage = (psid, message, pool, event) => {
                 if (isLoginExistent) {
                     return getIntent(psid, message).then((response) => {
                         if (response.hasMessages) {
-                            console.log(JSON.stringify(response.fulfillment.messages, null, 4));
                             let messages = response.fulfillment.messages;
                             return dialogflowRedirectMessages(psid, messages);
                         }
@@ -108,6 +107,10 @@ export const respondToQuickReply = (psid, pool, event) => {
     if (payload != "START_LOGIN") {
         return respondToMessage(psid, text, pool, event);
     } else {
-        return createAndLinkSaltedgeCustomer(pool, psid);
+        return createAndLinkSaltedgeCustomer(pool, psid).then(() => {
+            return sendFirstLoginMessages(state.messenger.psid);
+        }).catch((error) => {
+            throw error;
+        });
     }
 };
