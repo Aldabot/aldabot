@@ -22,7 +22,7 @@ export const sendWelcomeMessages = (psid) => {
         () => {
             return respondTextQuickReplies(
                 psid,
-                'Lo ayudaré a hacer un seguimiento de lo que está gastando, cómo está gastando y cómo puede hacerlo mejor.',
+                'Te ayudaré a hacer un seguimiento de lo que estás gastando, cómo estás gastando y cómo puedes hacerlo mejor.',
                 [{title: 'Empecemos', payload: "START_LOGIN"}]
             );
         }
@@ -37,14 +37,14 @@ export const sendFirstLoginMessages = (psid) => {
         () => {
             return respondTextMessage(
                 psid,
-                '¡Guay! Para comenzar su viaje hacia una mejor administración del dinero, necesito vincularme con su banca en línea.',
+                '¡Guay! Para comenzar tu viaje hacia una mejor administración del dinero, necesito vincularme con tu banca en línea.',
                 'RESPONSE'
             );
         },
         () => {
             return respondWebUrlButtons(
                 psid,
-                "Sus detalles están protegidos por seguridad de nivel bancario. Están completamente protegidos y son 100% seguros.",
+                "Tus detalles están protegidos por seguridad de nivel bancario. Están completamente protegidos y son 100% seguros.",
                 [
                     {
                         title: "FAQ",
@@ -75,7 +75,7 @@ export const sendYouHaveToLoginMessages = (psid) => {
         () => {
             return respondWebUrlButtons(
                 psid,
-                "Sus detalles están protegidos por seguridad de nivel bancario. Están completamente protegidos y son 100% seguros.",
+                "Tus detalles están protegidos por seguridad de nivel bancario. Están completamente protegidos y son 100% seguros.",
                 [
                     {
                         title: "FAQ",
