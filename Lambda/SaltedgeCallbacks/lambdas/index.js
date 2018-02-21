@@ -6,7 +6,8 @@ import {
     replaceCustomer,
     replaceLogin,
     replaceAccount,
-    replaceTransaction
+    replaceTransaction,
+    sendCreatedLoginNotification
 } from '../lib/database.js';
 Promise.promisifyAll(require("mysql/lib/Connection").prototype);
 Promise.promisifyAll(require("mysql/lib/Pool").prototype);
@@ -14,7 +15,7 @@ Promise.promisifyAll(require("mysql/lib/Pool").prototype);
 console.log("STARTING");
 
 var pool = mysql.createPool({
-    connectionLimit: 10,
+    connectionLimit: 5,
     host     : process.env.RDS_HOST,
     user     : process.env.RDS_USER,
     password : process.env.RDS_PASSWORD,
@@ -92,6 +93,8 @@ export function handler(event: any, context: any, callback): void {
                 promises.push(replaceTransaction(pool, transaction));
             }
             return Promise.all(promises);
+        }).then(() => {
+            return sendCreatedLoginNotification(pool, customerId, loginId);
         }).then(() => {
             console.info("Updated Login, Accounts and Transactions!");
             respond(callback, 200, null);
