@@ -22,7 +22,7 @@ export const sendWelcomeMessages = (psid) => {
         () => {
             return respondTextQuickReplies(
                 psid,
-                'Lo ayudaré a hacer un seguimiento de lo que está gastando, cómo está gastando y cómo puede hacerlo mejor.',
+                'Te ayudaré a hacer un seguimiento de lo que estás gastando, cómo estás gastando y cómo puedes hacerlo mejor.',
                 [{title: 'Empecemos', payload: "START_LOGIN"}]
             );
         }
@@ -35,17 +35,52 @@ export const sendWelcomeMessages = (psid) => {
 export const sendFirstLoginMessages = (psid) => {
     let promises = [
         () => {
-            respondTextMessage(
+            return respondTextMessage(
                 psid,
-                '¡Guay! Para comenzar su viaje hacia una mejor administración del dinero, necesito vincularme con su banca en línea.',
+                '¡Guay! Para comenzar tu viaje hacia una mejor administración del dinero, necesito vincularme con tu banca en línea.',
                 'RESPONSE'
             );
         },
         () => {
-            respondWebUrlButtons(
+            return respondWebUrlButtons(
                 psid,
-                "Sus detalles están protegidos por seguridad de nivel bancario. Están completamente protegidos y son 100% seguros.",
+                "Tus detalles están protegidos por seguridad de nivel bancario. Están completamente protegidos y son 100% seguros.",
                 [
+                    {
+                        title: "FAQ",
+                        url: "https://aldabot.es/faq"
+                    },
+                    {
+                        title: "Claro 🔒",
+                        url: "https://aldabot.es/registrate"
+                    }
+                ]
+            );
+        }
+    ];
+    return Promise.each(promises, (promise) => {
+        return promise();
+    });
+};
+
+export const sendYouHaveToLoginMessages = (psid) => {
+    let promises = [
+        () => {
+            return respondTextMessage(
+                psid,
+                'Para responderte necesito vincularme con su banca en línea.',
+                'RESPONSE'
+            );
+        },
+        () => {
+            return respondWebUrlButtons(
+                psid,
+                "Tus detalles están protegidos por seguridad de nivel bancario. Están completamente protegidos y son 100% seguros.",
+                [
+                    {
+                        title: "FAQ",
+                        url: "https://aldabot.es/#/faq"
+                    },
                     {
                         title: "Claro 🔒",
                         url: "https://aldabot.es/#/registrate"
@@ -57,4 +92,9 @@ export const sendFirstLoginMessages = (psid) => {
     return Promise.each(promises, (promise) => {
         return promise();
     });
+};
+
+
+export const sendSomethingWrongMessage = (psid) => {
+    return respondTextMessage(psid, "Ups, algo ha ido mal.");
 };

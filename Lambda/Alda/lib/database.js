@@ -1,4 +1,3 @@
-import Person from './person';
 import Promise from 'bluebird';
 Promise.promisifyAll(require("mysql/lib/Connection").prototype);
 Promise.promisifyAll(require("mysql/lib/Pool").prototype);
@@ -21,7 +20,7 @@ const query = (pool, sql, values) => {
 ////////////////////////////////////////////////////////////////
 
 export const createPerson = (pool, dbPerson) => {
-    const sql = `INSERT INTO persons SET ?`;
+    const sql = `INSERT IGNORE INTO persons SET ?`;
     return query(pool, sql, dbPerson);
 };
 export const retrievePerson = (pool, psid) => {
@@ -36,8 +35,17 @@ export const updatePerson = (pool, dbPerson) => {
     return retrievePerson(pool, dbPerson.psid).then((retrievedPerson) => {
         const mergedPerson = { ...retrievedPerson, ...dbPerson }; // overwrite all given person values
         const values = [mergedPerson, mergedPerson.psid];
-        const sql = 'UPDATE persons SET ? WHERE psid = ?';
+        const sql = "UPDATE persons SET ? WHERE psid = ?";
         return query(pool, sql, values);
+    });
+};
+export const isPersonExisting = (pool, psid) => {
+    return retrievePerson(pool, psid).then((person) => {
+        if (person) {
+            return true;
+        } else {
+            return false;
+        };
     });
 };
 
