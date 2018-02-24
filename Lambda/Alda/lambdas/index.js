@@ -109,6 +109,7 @@ export function handler(event, context: any, callback): void {
             respondToPostback(pool, state.messenger.event).then(() => {
                 respondOK(callback);
             }).catch((error) => {
+                console.log(JSON.stringify(error, null, 4));
                 respondTextMessage(state.messenger.psid, 'Ups algo ha ido mal.');
                 respondOK(callback);
             });

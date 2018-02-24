@@ -107,10 +107,6 @@ export const respondToQuickReply = (psid, pool, event) => {
     if (payload != "START_LOGIN") {
         return respondToMessage(psid, text, pool, event);
     } else {
-        return createAndLinkSaltedgeCustomer(pool, psid).then(() => {
-            return sendFirstLoginMessages(state.messenger.psid);
-        }).catch((error) => {
-            throw error;
-        });
+        return sendFirstLoginMessages(psid);
     }
 };

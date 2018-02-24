@@ -117,6 +117,6 @@ function respond(callback, responseCode, responseBody) {
         "x-custom-header" : "my custom header value"
     },
     body: JSON.stringify(responseBody)
-  })
+  });
 }
 
